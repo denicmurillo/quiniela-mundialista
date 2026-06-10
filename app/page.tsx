@@ -70,12 +70,12 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between border-t-4 border-blue-600">
-      <div className="flex-1 flex items-center justify-end gap-4 w-full md:w-auto">
+      <div className="flex-1 flex items-center justify-start md:justify-end gap-4 w-full md:w-auto">
         <span className="font-bold text-xl text-gray-800">{partido.equipo_local}</span>
         <img src={obtenerBandera(partido.equipo_local)} alt={partido.equipo_local} className="w-10 h-auto rounded shadow-sm" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 my-6 md:my-0 min-h-[140px]">
+      <div className="flex-1 flex items-center justify-end md:justify-start gap-4 w-full md:w-auto">
         <span className="text-xs font-semibold text-gray-500 mb-3 bg-gray-100 py-1 px-3 rounded-full">
           {partido.fecha_hora}
         </span>
