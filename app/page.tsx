@@ -11,8 +11,8 @@ interface Partido {
   equipo_visitante: string;
   fecha_hora: string;
   estado_partido: string;
-  goles_local?: number;     // Agregamos el dato real
-  goles_visitante?: number; // Agregamos el dato real
+  goles_local?: number;
+  goles_visitante?: number;
 }
 
 const obtenerBandera = (pais: string) => {
@@ -23,7 +23,7 @@ const obtenerBandera = (pais: string) => {
 function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User | null }) {
   const [golesLocal, setGolesLocal] = useState("0");
   const [golesVisitante, setGolesVisitante] = useState("0");
-  const [puntos, setPuntos] = useState<number | null>(null); // Estado para los puntos ganados
+  const [puntos, setPuntos] = useState<number | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [existePronostico, setExistePronostico] = useState(false);
 
@@ -70,27 +70,28 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between border-t-4 border-blue-600">
-      <div className="flex-1 flex items-center justify-end gap-4 w-full md:w-auto">
+
+      {/* Equipo Local: Centrado en móvil, alineado a la derecha en PC */}
+      <div className="flex-1 flex items-center justify-center md:justify-end gap-4 w-full md:w-auto">
         <span className="font-bold text-xl text-gray-800">{partido.equipo_local}</span>
         <img src={obtenerBandera(partido.equipo_local)} alt={partido.equipo_local} className="w-10 h-auto rounded shadow-sm" />
       </div>
 
-      <div className="flex-1 flex items-center justify-start gap-4 w-full md:w-auto">
-        <span className="text-xs font-semibold text-gray-500 mb-3 bg-gray-100 py-1 px-3 rounded-full">
+      {/* Centro: Siempre en columna y centrado */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full px-4 my-6 md:my-0 min-h-[140px]">
+        <span className="text-xs font-semibold text-gray-500 mb-3 bg-gray-100 py-1 px-3 rounded-full text-center">
           {partido.fecha_hora}
         </span>
 
         {estaBloqueado ? (
-          // VISUALIZACIÓN DE PARTIDO FINALIZADO
           <div className="flex flex-col items-center w-full">
-            <span className="text-red-600 font-black text-sm uppercase tracking-wider mb-1">Marcador Final</span>
+            <span className="text-red-600 font-black text-sm uppercase tracking-wider mb-1 text-center">Marcador Final</span>
             <div className="flex gap-4 items-center text-3xl font-black text-gray-800 mb-3">
               <span>{partido.goles_local ?? 0}</span>
               <span className="text-gray-400">-</span>
               <span>{partido.goles_visitante ?? 0}</span>
             </div>
 
-            {/* Mensaje personalizado si el usuario jugó o no */}
             {usuario ? (
               existePronostico ? (
                 <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg text-center w-full max-w-[200px]">
@@ -98,14 +99,13 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
                   <p className="text-sm font-bold text-green-600">+{puntos} Puntos</p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 italic">No participaste en este partido.</p>
+                <p className="text-xs text-gray-400 italic text-center">No participaste en este partido.</p>
               )
             ) : (
-              <p className="text-xs text-gray-400 italic">Inicia sesión para ver tu desempeño.</p>
+              <p className="text-xs text-gray-400 italic text-center">Inicia sesión para ver tu desempeño.</p>
             )}
           </div>
         ) : (
-          // VISUALIZACIÓN DE PARTIDO PENDIENTE (Inputs)
           <div className="flex flex-col items-center">
             <div className="flex gap-2 items-center">
               <input type="number" min="0" value={golesLocal} onChange={(e) => setGolesLocal(e.target.value)} className="w-12 h-12 text-center border-2 rounded-md p-1 font-bold text-xl outline-none border-gray-200 focus:border-blue-500 text-black" />
@@ -119,7 +119,8 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
         )}
       </div>
 
-      <div className="flex-1 flex items-center justify-start gap-4 w-full md:w-auto">
+      {/* Equipo Visitante: Centrado en móvil, alineado a la izquierda en PC */}
+      <div className="flex-1 flex items-center justify-center md:justify-start gap-4 w-full md:w-auto">
         <img src={obtenerBandera(partido.equipo_visitante)} alt={partido.equipo_visitante} className="w-10 h-auto rounded shadow-sm" />
         <span className="font-bold text-xl text-gray-800">{partido.equipo_visitante}</span>
       </div>
@@ -165,7 +166,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-900">🏆 Tablero de Partidos</h1>
+          <h1 className="text-4xl font-bold text-blue-900 text-center md:text-left w-full md:w-auto">🏆 Tablero de Partidos</h1>
           <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 hidden md:block">
             {usuarioActual ? `👤 ${usuarioActual.email}` : "⚠️ No has iniciado sesión"}
           </div>
