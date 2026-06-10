@@ -1,5 +1,5 @@
 "use client";
-
+import { sembrarCalendario } from "../../lib/cargarCalendario";
 import { useEffect, useState } from "react";
 import { collection, getDocs, doc, updateDoc, query, where } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
@@ -109,6 +109,19 @@ export default function PanelAdmin() {
                 <h1 className="text-4xl font-bold text-center text-red-500 mb-2">⚙️ Panel de Control</h1>
                 <p className="text-center text-gray-400 mb-8 text-sm">Autenticado como administrador VIP</p>
 
+                <div className="flex justify-center mb-6">
+                    <button
+                        onClick={async () => {
+                            if (confirm("¿Quieres cargar el calendario oficial de la Fase de Grupos?")) {
+                                const exito = await sembrarCalendario();
+                                if (exito) alert("🚀 ¡Partidos cargados! Refresca la página.");
+                            }
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm shadow-md transition-all"
+                    >
+                        ⚡ Cargar Calendario Real Mundial
+                    </button>
+                </div>
                 {cargando ? (
                     <p className="text-center text-white">Cargando sistema...</p>
                 ) : (

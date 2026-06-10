@@ -16,8 +16,22 @@ interface Partido {
 }
 
 const obtenerBandera = (pais: string) => {
-  const codigos: Record<string, string> = { "México": "mx", "Brasil": "br", "Argentina": "ar", "Costa Rica": "cr", "España": "es" };
-  return codigos[pais] ? `https://flagcdn.com/w80/${codigos[pais]}.png` : "https://flagcdn.com/w80/un.png";
+  const codigos: Record<string, string> = {
+    "México": "mx",
+    "Sudáfrica": "za",
+    "Corea del Sur": "kr",
+    "Chequia": "cz",
+    "Canadá": "ca",
+    "Bosnia": "ba",
+    "Estados Unidos": "us",
+    "Paraguay": "py",
+    "Catar": "qa",
+    "Suiza": "ch",
+    "Brasil": "br",
+    "Marruecos": "ma"
+  };
+  const codigo = codigos[pais];
+  return codigo ? `https://flagcdn.com/w80/${codigo}.png` : "https://flagcdn.com/w80/un.png";
 };
 
 function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User | null }) {
