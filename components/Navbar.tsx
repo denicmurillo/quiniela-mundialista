@@ -35,7 +35,7 @@ export default function Navbar() {
 
                     {/* Logo / Título */}
                     <Link href="/" className="font-bold text-xl flex items-center gap-2">
-                        <span className="tracking-tighter text-white">MUNDIAL PRO 2026</span>
+                        <span className="tracking-tighter text-white">MUNDIAL 2026</span>
                     </Link>
 
                     {/* Botones de Navegación */}
