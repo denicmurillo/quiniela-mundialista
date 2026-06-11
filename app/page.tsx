@@ -12,6 +12,7 @@ interface Partido {
   fecha_hora: string;
   fecha_original?: any;
   estado_partido: string;
+  jornada: number; // NUEVO: Campo clave para el filtro de pestañas
   goles_local?: number;
   goles_visitante?: number;
 }
@@ -29,7 +30,9 @@ const obtenerBandera = (pais: string) => {
     "Francia": "fr", "Senegal": "sn", "Irak": "iq", "Noruega": "no",
     "Argentina": "ar", "Argelia": "dz", "Austria": "at", "Jordania": "jo",
     "Portugal": "pt", "RD Congo": "cd", "Inglaterra": "gb-eng", "Croacia": "hr",
-    "Ghana": "gh", "Panamá": "pa", "Uzbekistán": "uz", "Colombia": "co"
+    "Ghana": "gh", "Panamá": "pa", "Uzbekistán": "uz", "Colombia": "co",
+    "Italia": "it", "Chile": "cl", "Nigeria": "ng", "Polonia": "pl",
+    "Dinamarca": "dk", "Perú": "pe", "Ucrania": "ua", "Camerún": "cm"
   };
   const codigo = codigos[pais];
   return codigo ? `https://flagcdn.com/w80/${codigo}.png` : "https://flagcdn.com/w80/un.png";
@@ -81,35 +84,26 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
     }
   };
 
-  // Convertimos el Timestamp o Date original a Date nativo de JS
   const horaPartido = partido.fecha_original && typeof partido.fecha_original.toDate === 'function'
     ? partido.fecha_original.toDate()
     : (partido.fecha_original instanceof Date ? partido.fecha_original : new Date(partido.fecha_original || partido.fecha_hora));
   const ahora = new Date();
-
-  // Calculamos la diferencia en milisegundos y la pasamos a minutos
   const diferenciaMinutos = (horaPartido.getTime() - ahora.getTime()) / (1000 * 60);
-
-  // El partido se bloquea si el administrador lo finalizó O si faltan menos de 5 minutos para que empiece
   const estaBloqueado = partido.estado_partido === "finalizado" || (!isNaN(diferenciaMinutos) && diferenciaMinutos <= 5);
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between border-t-4 border-blue-600">
-
-      {/* Equipo Local: Centrado en móvil, alineado a la derecha en PC */}
       <div className="flex-1 flex items-center justify-center md:justify-end gap-4 w-full md:w-auto">
         <span className="font-bold text-xl text-gray-800">{partido.equipo_local}</span>
         <img src={obtenerBandera(partido.equipo_local)} alt={partido.equipo_local} className="w-10 h-auto rounded shadow-sm" />
       </div>
 
-      {/* Centro: Siempre en columna y centrado */}
       <div className="flex-1 flex flex-col items-center justify-center w-full px-4 my-6 md:my-0 min-h-[140px]">
         <span className="text-xs font-semibold text-gray-500 mb-3 bg-gray-100 py-1 px-3 rounded-full text-center">
           {partido.fecha_hora}
         </span>
 
         {estaBloqueado ? (
-          // VISUALIZACIÓN DE PARTIDO BLOQUEADO O FINALIZADO
           <div className="flex flex-col items-center w-full">
             {partido.estado_partido === "finalizado" ? (
               <span className="text-red-600 font-black text-sm uppercase tracking-wider mb-1 text-center">Marcador Final</span>
@@ -156,7 +150,6 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
         )}
       </div>
 
-      {/* Equipo Visitante: Centrado en móvil, alineado a la izquierda en PC */}
       <div className="flex-1 flex items-center justify-center md:justify-start gap-4 w-full md:w-auto">
         <img src={obtenerBandera(partido.equipo_visitante)} alt={partido.equipo_visitante} className="w-10 h-auto rounded shadow-sm" />
         <span className="font-bold text-xl text-gray-800">{partido.equipo_visitante}</span>
@@ -169,6 +162,9 @@ export default function Home() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
+
+  // NUEVO: Estado para controlar qué pestaña está activa (inicia en 1)
+  const [jornadaActiva, setJornadaActiva] = useState<number>(1);
 
   useEffect(() => {
     const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
@@ -187,8 +183,17 @@ export default function Home() {
             fechaOriginal = data.fecha_hora.toDate();
             fechaFormateada = fechaOriginal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
           }
-          listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada, fecha_original: fechaOriginal } as Partido);
+          // Recuperamos el campo jornada (si es un registro viejo y no lo tiene, asumimos 1 por defecto)
+          listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada, fecha_original: fechaOriginal, jornada: data.jornada || 1 } as Partido);
         });
+
+        // Ordenamos los partidos cronológicamente para que se vean bien
+        listaPartidos.sort((a, b) => {
+          const timeA = a.fecha_original instanceof Date ? a.fecha_original.getTime() : 0;
+          const timeB = b.fecha_original instanceof Date ? b.fecha_original.getTime() : 0;
+          return timeA - timeB;
+        });
+
         setPartidos(listaPartidos);
       } catch (error) {
         console.error("Error al cargar partidos:", error);
@@ -202,34 +207,66 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
+    <main className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
+
         {/* SECCIÓN HERO CON LOGO GRANDE */}
-        <div className="flex flex-col items-center mb-10 pt-4">
+        <div className="flex flex-col items-center mb-8 pt-4">
           <img
             src={process.env.NEXT_PUBLIC_APP_LOGO || "/logo-familia-1.png"}
             alt="Mundial Pro 2026"
             className="w-32 h-32 md:w-40 md:h-40 object-contain mb-4 drop-shadow-xl"
           />
-          <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter text-center">
-            MUNDIAL PRO <span className="text-blue-600">2026</span>
+          <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter text-center uppercase">
+            {process.env.NEXT_PUBLIC_APP_TITLE || "Quiniela Mundialista"}
           </h1>
-          <p className="text-gray-500 font-medium text-center mt-2">La quiniela oficial para expertos</p>
+          <p className="text-blue-600 font-bold tracking-wider text-sm uppercase text-center mt-2">
+            🏆 FASE I: Grupos
+          </p>
         </div>
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-900 text-center md:text-left w-full md:w-auto">🏆 Tablero de Partidos</h1>
+
+        {/* SELECTOR TÁCTIL DE PESTAÑAS */}
+        <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 flex justify-between gap-2 mb-8">
+          {[1, 2, 3].map((num) => (
+            <button
+              key={num}
+              onClick={() => setJornadaActiva(num)}
+              className={`flex-1 py-3 px-2 rounded-lg font-bold text-xs md:text-sm transition-all uppercase tracking-wider text-center ${jornadaActiva === num
+                  ? "bg-blue-600 text-white shadow-md scale-[1.02]"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                }`}
+            >
+              Jornada {num === 1 ? "I" : num === 2 ? "II" : "III"}
+            </button>
+          ))}
+        </div>
+
+        {/* ENCABEZADO DE TABLERO Y USUARIO */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-blue-900 text-center md:text-left w-full md:w-auto">
+            Partidos (Jornada {jornadaActiva === 1 ? "I" : jornadaActiva === 2 ? "II" : "III"})
+          </h2>
           <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 hidden md:block">
             {usuarioActual ? `👤 ${usuarioActual.email}` : "⚠️ No has iniciado sesión"}
           </div>
         </div>
 
         {cargando ? (
-          <p className="text-center text-gray-500 font-semibold animate-pulse">Cargando el calendario desde el estadio...</p>
+          <p className="text-center text-gray-500 font-semibold animate-pulse py-10">Cargando el calendario desde el estadio...</p>
         ) : (
           <div className="space-y-4">
-            {partidos.map((partido) => (
-              <TarjetaPartido key={partido.id} partido={partido} usuario={usuarioActual} />
-            ))}
+            {/* AQUÍ SE HACE EL FILTRADO MÁGICO POR JORNADA ACTIVA */}
+            {partidos
+              .filter((p) => p.jornada === jornadaActiva)
+              .map((partido) => (
+                <TarjetaPartido key={partido.id} partido={partido} usuario={usuarioActual} />
+              ))}
+
+            {partidos.filter((p) => p.jornada === jornadaActiva).length === 0 && (
+              <p className="text-center text-gray-400 italic py-8 bg-white rounded-xl shadow-sm border border-gray-200">
+                No hay partidos programados para esta jornada.
+              </p>
+            )}
           </div>
         )}
       </div>
