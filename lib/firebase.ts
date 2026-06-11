@@ -1,4 +1,4 @@
-// Importamos las funciones necesarias de Firebase
+// lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -14,20 +14,35 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Inicializar Firebase (Evita duplicados en Next.js)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
+// 🛡️ CONTROL DE SEGURIDAD PARA EL COMPILADOR EN VERCEL (BUILD TIME)
+const esLlaveValida = typeof window !== "undefined"
+    ? !!firebaseConfig.apiKey
+    : !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
-// Inicializamos Analytics SOLO si estamos del lado del cliente (navegador)
-let analytics;
-if (typeof window !== "undefined") {
-    isSupported().then((supported) => {
-        if (supported) {
-            analytics = getAnalytics(app);
-        }
-    });
+let app: any;
+let db: any;
+let auth: any;
+let analytics: any = null;
+
+if (esLlaveValida) {
+    // Inicializar Firebase Real (Evita duplicados en Next.js)
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    db = getFirestore(app);
+    auth = getAuth(app);
+
+    // Inicializamos Analytics SOLO si estamos del lado del cliente (navegador)
+    if (typeof window !== "undefined") {
+        isSupported().then((supported) => {
+            if (supported) {
+                analytics = getAnalytics(app);
+            }
+        });
+    }
+} else {
+    // Proxies falsos temporales para engañar al proceso de compilación de Next.js
+    app = {};
+    db = {};
+    auth = {};
 }
 
-// Exportamos todo para usarlo en la app
 export { app, db, auth, analytics };
