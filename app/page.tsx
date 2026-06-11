@@ -204,6 +204,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-4xl mx-auto">
+        {/* SECCIÓN HERO CON LOGO GRANDE */}
+        <div className="flex flex-col items-center mb-10 pt-4">
+          <img src="/logo.png" alt="Mundial Pro 2026" className="w-32 h-32 md:w-40 md:h-40 object-contain mb-4 drop-shadow-xl" />
+          <h1 className="text-4xl md:text-5xl font-black text-blue-900 tracking-tighter text-center">
+            MUNDIAL PRO <span className="text-blue-600">2026</span>
+          </h1>
+          <p className="text-gray-500 font-medium text-center mt-2">La quiniela oficial para expertos</p>
+        </div>
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-blue-900 text-center md:text-left w-full md:w-auto">🏆 Tablero de Partidos</h1>
           <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200 hidden md:block">

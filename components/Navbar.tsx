@@ -34,11 +34,8 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
 
                     {/* Logo / Título */}
-                    <Link href="/" className="font-bold text-xl flex items-center gap-3 hover:scale-105 transition-transform">
-                        <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> {/* TU LOGO */}
-                        <span className="tracking-tighter bg-gradient-to-r from-blue-900 to-blue-600 bg-clip-text text-transparent">
-                            MUNDIAL PRO 2026
-                        </span>
+                    <Link href="/" className="font-bold text-xl flex items-center gap-2">
+                        <span className="tracking-tighter text-white">MUNDIAL PRO 2026</span>
                     </Link>
 
                     {/* Botones de Navegación */}

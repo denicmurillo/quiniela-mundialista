@@ -4,21 +4,18 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Tus credenciales exactas
 const firebaseConfig = {
-    apiKey: "AIzaSyBSmz8ze45TB2xdLFyZMpUDCpNqRtGqO4Y",
-    authDomain: "mundial-pro-app.firebaseapp.com",
-    projectId: "mundial-pro-app",
-    storageBucket: "mundial-pro-app.firebasestorage.app",
-    messagingSenderId: "541413737632",
-    appId: "1:541413737632:web:fc4e28c25f9247428a35c5",
-    measurementId: "G-ZFV1YQ0FMY" // Añadimos el ID de Analytics
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Inicializamos Firebase solo una vez
+// Inicializar Firebase (Evita duplicados en Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-// Inicializamos la Base de Datos (Firestore) y la Autenticación
 const db = getFirestore(app);
 const auth = getAuth(app);
 
