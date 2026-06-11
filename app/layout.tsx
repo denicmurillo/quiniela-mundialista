@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 // Estos son los datos que leen los navegadores y WhatsApp para los enlaces
 export const metadata: Metadata = {
-  title: "Quiniela Mundialista",
+  title: "Quiniela Mundialista Familia Murillo",
   description: "Demuestra quién sabe más de fútbol. Juega con amigos y familiares.",
 };
 

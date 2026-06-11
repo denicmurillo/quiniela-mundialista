@@ -28,13 +28,17 @@ export default function Navbar() {
     const esActivo = (ruta: string) => pathname === ruta;
 
     return (
+
         <nav className="bg-blue-900 text-white shadow-md sticky top-0 z-50">
             <div className="max-w-4xl mx-auto px-4">
                 <div className="flex justify-between items-center h-16">
 
                     {/* Logo / Título */}
-                    <Link href="/" className="font-bold text-xl flex items-center gap-2 hover:scale-105 transition-transform">
-                        ⚽ <span className="hidden sm:block tracking-wide">Mundial Pro</span>
+                    <Link href="/" className="font-bold text-xl flex items-center gap-3 hover:scale-105 transition-transform">
+                        <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> {/* TU LOGO */}
+                        <span className="tracking-tighter bg-gradient-to-r from-blue-900 to-blue-600 bg-clip-text text-transparent">
+                            MUNDIAL PRO 2026
+                        </span>
                     </Link>
 
                     {/* Botones de Navegación */}
