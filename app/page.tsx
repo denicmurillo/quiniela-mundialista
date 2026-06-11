@@ -10,6 +10,7 @@ interface Partido {
   equipo_local: string;
   equipo_visitante: string;
   fecha_hora: string;
+  fecha_original?: any;
   estado_partido: string;
   goles_local?: number;
   goles_visitante?: number;
@@ -80,7 +81,17 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
     }
   };
 
-  const estaBloqueado = partido.estado_partido === "finalizado";
+  // Convertimos el Timestamp o Date original a Date nativo de JS
+  const horaPartido = partido.fecha_original && typeof partido.fecha_original.toDate === 'function'
+    ? partido.fecha_original.toDate()
+    : (partido.fecha_original instanceof Date ? partido.fecha_original : new Date(partido.fecha_original || partido.fecha_hora));
+  const ahora = new Date();
+
+  // Calculamos la diferencia en milisegundos y la pasamos a minutos
+  const diferenciaMinutos = (horaPartido.getTime() - ahora.getTime()) / (1000 * 60);
+
+  // El partido se bloquea si el administrador lo finalizó O si faltan menos de 5 minutos para que empiece
+  const estaBloqueado = partido.estado_partido === "finalizado" || (!isNaN(diferenciaMinutos) && diferenciaMinutos <= 5);
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row items-center justify-between border-t-4 border-blue-600">
@@ -98,22 +109,34 @@ function TarjetaPartido({ partido, usuario }: { partido: Partido, usuario: User 
         </span>
 
         {estaBloqueado ? (
+          // VISUALIZACIÓN DE PARTIDO BLOQUEADO O FINALIZADO
           <div className="flex flex-col items-center w-full">
-            <span className="text-red-600 font-black text-sm uppercase tracking-wider mb-1 text-center">Marcador Final</span>
-            <div className="flex gap-4 items-center text-3xl font-black text-gray-800 mb-3">
-              <span>{partido.goles_local ?? 0}</span>
-              <span className="text-gray-400">-</span>
-              <span>{partido.goles_visitante ?? 0}</span>
-            </div>
+            {partido.estado_partido === "finalizado" ? (
+              <span className="text-red-600 font-black text-sm uppercase tracking-wider mb-1 text-center">Marcador Final</span>
+            ) : (
+              <span className="text-amber-600 font-black text-sm uppercase tracking-wider mb-1 text-center animate-pulse">🔒 Pronósticos Cerrados</span>
+            )}
+
+            {partido.estado_partido === "finalizado" ? (
+              <div className="flex gap-4 items-center text-3xl font-black text-gray-800 mb-3">
+                <span>{partido.goles_local ?? 0}</span>
+                <span className="text-gray-400">-</span>
+                <span>{partido.goles_visitante ?? 0}</span>
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500 font-semibold mb-3 bg-amber-50 border border-amber-200 py-1 px-3 rounded-full text-center">
+                El partido está por comenzar o ya está en juego
+              </div>
+            )}
 
             {usuario ? (
               existePronostico ? (
                 <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg text-center w-full max-w-[200px]">
-                  <p className="text-xs text-blue-800 mb-1">Tu pronóstico: <b className="text-sm">{golesLocal} - {golesVisitante}</b></p>
-                  <p className="text-sm font-bold text-green-600">+{puntos} Puntos</p>
+                  <p className="text-xs text-blue-800 mb-1">Tu pronóstico enviado: <b className="text-sm">{golesLocal} - {golesVisitante}</b></p>
+                  {partido.estado_partido === "finalizado" && <p className="text-sm font-bold text-green-600">+{puntos} Puntos</p>}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 italic text-center">No participaste en este partido.</p>
+                <p className="text-xs text-gray-400 italic text-center">No registraste pronóstico para este juego.</p>
               )
             ) : (
               <p className="text-xs text-gray-400 italic text-center">Inicia sesión para ver tu desempeño.</p>
@@ -159,10 +182,12 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           let fechaFormateada = data.fecha_hora;
+          let fechaOriginal = data.fecha_hora;
           if (data.fecha_hora && typeof data.fecha_hora.toDate === 'function') {
-            fechaFormateada = data.fecha_hora.toDate().toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+            fechaOriginal = data.fecha_hora.toDate();
+            fechaFormateada = fechaOriginal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
           }
-          listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada } as Partido);
+          listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada, fecha_original: fechaOriginal } as Partido);
         });
         setPartidos(listaPartidos);
       } catch (error) {
