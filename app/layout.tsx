@@ -6,8 +6,10 @@ import Navbar from "../components/Navbar"; // IMPORTAMOS LA BARRA
 const inter = Inter({ subsets: ["latin"] });
 
 // Estos son los datos que leen los navegadores y WhatsApp para los enlaces
+const nombreApp = process.env.NEXT_PUBLIC_APP_TITLE || "Quiniela Mundialista FAMILIA MURILLO";
+
 export const metadata: Metadata = {
-  title: "Quiniela Mundialista NFL CQ",
+  title: nombreApp,
   description: "Demuestra quién sabe más de fútbol. Juega con amigos y familiares.",
 };
 
