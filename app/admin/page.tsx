@@ -7,12 +7,12 @@ import Link from "next/link";
 import { db, auth } from "../../lib/firebase";
 import { procesarPuntosDePrediccion } from "../../lib/motorPuntos";
 
-// Agregamos los goles reales a la interfaz
 interface Partido {
     id: string;
     equipo_local: string;
     equipo_visitante: string;
     estado_partido: string;
+    jornada?: number; // Agregado para saber a qué jornada pasar los puntos
     goles_local?: number;
     goles_visitante?: number;
 }
@@ -40,6 +40,9 @@ export default function PanelAdmin() {
                 querySnapshot.forEach((doc) => {
                     lista.push({ id: doc.id, ...doc.data() } as Partido);
                 });
+
+                // Ordenar por ID o Jornada para facilitar la vista
+                lista.sort((a, b) => (a.jornada || 1) - (b.jornada || 1));
                 setPartidos(lista);
             } catch (error) {
                 console.error("Error al cargar partidos:", error);
@@ -66,9 +69,13 @@ export default function PanelAdmin() {
         const realLocal = parseInt(res.local);
         const realVisitante = parseInt(res.visitante);
 
-        if (!confirm(`¿Seguro que quieres finalizar este partido con el resultado ${realLocal} - ${realVisitante}?`)) return;
+        if (!confirm(`¿Seguro que quieres procesar el resultado ${realLocal} - ${realVisitante}?`)) return;
 
         try {
+            // Buscamos a qué jornada pertenece este partido
+            const partidoActual = partidos.find(p => p.id === partidoId);
+            const jornadaDelPartido = partidoActual?.jornada || 1;
+
             const partidoRef = doc(db, "partidos", partidoId);
             await updateDoc(partidoRef, { estado_partido: "finalizado", goles_local: realLocal, goles_visitante: realVisitante });
 
@@ -79,11 +86,12 @@ export default function PanelAdmin() {
             let prediccionesProcesadas = 0;
             for (const documento of prediccionesSnapshot.docs) {
                 const data = documento.data();
-                await procesarPuntosDePrediccion(documento.id, data.usuario_id, data.pronostico_local, data.pronostico_visitante, realLocal, realVisitante);
+                // AQUÍ PASAMOS LA JORNADA AL MOTOR
+                await procesarPuntosDePrediccion(documento.id, data.usuario_id, data.pronostico_local, data.pronostico_visitante, realLocal, realVisitante, jornadaDelPartido);
                 prediccionesProcesadas++;
             }
 
-            alert(`✅ Partido finalizado. Se repartieron puntos a ${prediccionesProcesadas} participantes.`);
+            alert(`✅ Partido finalizado. Se recalcularon los puntos de ${prediccionesProcesadas} participantes.`);
             window.location.reload();
         } catch (error) {
             console.error("Error al finalizar partido:", error);
@@ -131,7 +139,6 @@ export default function PanelAdmin() {
                                 <div className="text-white font-bold text-xl flex-1 text-center md:text-right">{partido.equipo_local}</div>
 
                                 <div className="flex-1 flex flex-col items-center justify-center px-4 my-4 md:my-0">
-                                    {/* LÓGICA VISUAL: Finalizado vs Pendiente */}
                                     {partido.estado_partido === "finalizado" ? (
                                         <div className="flex flex-col items-center">
                                             <div className="flex gap-4 items-center text-3xl font-black text-white mb-2">
@@ -139,7 +146,14 @@ export default function PanelAdmin() {
                                                 <span className="text-gray-500">-</span>
                                                 <span>{partido.goles_visitante ?? 0}</span>
                                             </div>
-                                            <span className="text-green-500 font-bold bg-green-900/30 px-3 py-1 rounded">Ya procesado</span>
+                                            <span className="text-green-500 font-bold bg-green-900/30 px-3 py-1 rounded mb-2">Ya procesado</span>
+
+                                            {/* Permite re-procesar si te equivocaste de marcador */}
+                                            <div className="flex gap-2 items-center">
+                                                <input type="number" min="0" placeholder="0" onChange={(e) => manejarCambio(partido.id, "local", e.target.value)} className="w-10 h-8 text-center bg-gray-700 text-white border border-gray-600 rounded text-sm" />
+                                                <input type="number" min="0" placeholder="0" onChange={(e) => manejarCambio(partido.id, "visitante", e.target.value)} className="w-10 h-8 text-center bg-gray-700 text-white border border-gray-600 rounded text-sm" />
+                                                <button onClick={() => finalizarPartido(partido.id)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">Corregir</button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <>
