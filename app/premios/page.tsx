@@ -185,12 +185,12 @@ export default function Premios() {
                             <span className="font-black text-gray-800 text-center text-[10px] md:text-sm uppercase tracking-wide">M&G Abogados</span>
                         </div>
 
-                        {/* 5. Espacio Disponible */}
-                        <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-colors group cursor-pointer">
-                            <div className="h-20 md:h-28 w-full flex items-center justify-center mb-3 md:mb-4">
-                                <span className="text-gray-300 group-hover:text-blue-400 text-4xl font-light">+</span>
+                        {/* 5. PECHE Fitness */}
+                        <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md transition-shadow group">
+                            <div className="h-20 md:h-28 w-full flex items-center justify-center mb-3 md:mb-4 transition-transform group-hover:scale-105">
+                                <img src="/logo-PECHE.png" alt="PECHE Fitness" className="max-h-full max-w-full object-contain drop-shadow-sm" />
                             </div>
-                            <span className="font-bold text-gray-400 group-hover:text-blue-500 text-center text-[10px] md:text-sm uppercase tracking-wide">Tu Marca Aquí</span>
+                            <span className="font-black text-gray-800 text-center text-[10px] md:text-sm uppercase tracking-wide">PECHE Fitness</span>
                         </div>
 
                         {/* 6. Espacio Disponible */}
