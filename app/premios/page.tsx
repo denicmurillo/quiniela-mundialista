@@ -268,12 +268,12 @@ export default function Premios() {
                             <span className="font-black text-gray-800 text-center text-[11px] uppercase tracking-wide">Óptica D'Arce</span>
                         </div>
 
-                        {/* 8. Espacio Disponible */}
-                        <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-emerald-400 hover:bg-emerald-50 transition-colors group cursor-pointer">
-                            <div className="h-20 w-full flex items-center justify-center mb-2">
-                                <span className="text-gray-300 group-hover:text-emerald-500 text-3xl font-light">+</span>
+                        {/* 8. Tajo Santa Fe */}
+                        <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md transition-all group">
+                            <div className="h-20 w-full flex items-center justify-center mb-2 transition-transform group-hover:scale-105">
+                                <img src="/logo-tajo-santa-fe.png" alt="Tajo Santa Fe" className="max-h-full max-w-full object-contain drop-shadow-sm" />
                             </div>
-                            <span className="font-bold text-gray-400 group-hover:text-emerald-600 text-center text-[10px] uppercase tracking-wide">Disponible</span>
+                            <span className="font-black text-gray-800 text-center text-[11px] uppercase tracking-wide">Tajo Santa Fe</span>
                         </div>
 
                         {/* 9. Espacio Disponible */}
