@@ -26,8 +26,8 @@ export default function Premios() {
                         </p>
                     </div>
 
-                    {/* BARRA DE SUBPESTAÑAS (Scroll horizontal en móvil, Grid en PC) */}
-                    <div className="bg-gray-100 p-1 rounded-xl flex overflow-x-auto whitespace-nowrap gap-1 md:grid md:grid-cols-5 mb-6 scrollbar-none">
+                    {/* BARRA DE SUBPESTAÑAS (Flex-wrap para que se acomoden en celular, Grid en PC) */}
+                    <div className="bg-gray-100 p-2 rounded-xl flex flex-wrap justify-center gap-2 md:grid md:grid-cols-5 mb-6">
                         {[
                             { id: "j1", etiqueta: "Jornada I" },
                             { id: "j2", etiqueta: "Jornada II" },
@@ -38,9 +38,9 @@ export default function Premios() {
                             <button
                                 key={tab.id}
                                 onClick={() => setTabActiva(tab.id)}
-                                className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${tabActiva === tab.id
-                                    ? "bg-emerald-600 text-white shadow-sm"
-                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                                className={`flex-auto sm:flex-1 py-2 px-3 rounded-lg font-bold text-[11px] sm:text-xs uppercase tracking-wider text-center transition-all ${tabActiva === tab.id
+                                    ? "bg-emerald-600 text-white shadow-md scale-[1.02]"
+                                    : "text-gray-500 hover:bg-gray-200 hover:text-gray-800"
                                     }`}
                             >
                                 {tab.etiqueta}
@@ -153,15 +153,18 @@ export default function Premios() {
                                 <h3 className="font-black text-gray-800 text-xl uppercase mb-5 tracking-tight text-center md:text-left">📅 Cronograma de Celebraciones</h3>
 
                                 {/* 📢 ANUNCIO DE SEDE Y TRANSMISIONES */}
-                                <div className="mb-8 p-5 bg-gradient-to-r from-blue-900 to-blue-700 rounded-xl shadow-md text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-800">
-                                    <div className="flex items-center gap-4 text-center sm:text-left flex-col sm:flex-row">
-                                        <div className="bg-white/20 p-3 rounded-full flex-shrink-0">
-                                            <span className="text-3xl">🍻</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-black text-lg md:text-xl uppercase tracking-wider text-amber-300 drop-shadow-sm">Sede Oficial: El Contenedor</h4>
-                                            <p className="text-sm text-blue-100 font-medium mt-1">¡Ven a ver las transmisiones de los partidos en vivo en las fechas anunciadas y acompáñanos en nuestras épicas entregas de premios!</p>
-                                        </div>
+                                <div className="mb-8 p-6 bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg text-white flex flex-col sm:flex-row items-center gap-6 border-b-4 border-amber-400">
+                                    <div className="bg-white/10 p-4 rounded-full flex-shrink-0 backdrop-blur-sm">
+                                        <span className="text-5xl">🍻</span>
+                                    </div>
+                                    <div className="text-center sm:text-left">
+                                        <h4 className="font-black text-sm md:text-base uppercase tracking-wider text-blue-200 mb-1">Sede Oficial</h4>
+                                        <span className="text-3xl md:text-4xl font-black uppercase text-amber-300 drop-shadow-md block leading-none">
+                                            EL CONTENEDOR
+                                        </span>
+                                        <p className="text-sm text-blue-100 font-medium mt-3 leading-relaxed">
+                                            ¡Ven a ver las transmisiones de los partidos en vivo en las fechas anunciadas y acompáñanos en nuestras épicas entregas de premios!
+                                        </p>
                                     </div>
                                 </div>
 

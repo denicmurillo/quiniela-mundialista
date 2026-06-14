@@ -9,7 +9,7 @@ import { auth } from "../lib/firebase";
 export default function Navbar() {
     const pathname = usePathname();
     const [usuario, setUsuario] = useState<User | null>(null);
-    const [menuAbierto, setMenuMenuAbierto] = useState(false); // Controla el dropdown
+    const [menuAbierto, setMenuMenuAbierto] = useState(false);
 
     useEffect(() => {
         const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
@@ -28,35 +28,36 @@ export default function Navbar() {
 
     return (
         <nav className="bg-blue-900 text-white shadow-md sticky top-0 z-50">
-            <div className="max-w-4xl mx-auto px-4">
+            <div className="max-w-4xl mx-auto px-2 sm:px-4">
                 <div className="flex justify-between items-center h-16">
 
-                    {/* Logo / Título */}
-                    <Link href="/" className="font-bold text-lg tracking-tight hover:scale-105 transition-transform flex items-center gap-1">
-                        ⚽ <span>MUNDIAL 2026</span>
+                    {/* Logo / Título - Ajustado para que no robe espacio en móviles */}
+                    <Link href="/" className="font-bold hover:scale-105 transition-transform flex items-center gap-1 whitespace-nowrap shrink-0">
+                        <span className="text-xl md:text-2xl">⚽</span>
+                        <span className="tracking-tighter text-white text-sm sm:text-base md:text-lg">MUNDIAL 2026</span>
                     </Link>
 
-                    {/* Botones de Navegación Alineados */}
-                    <div className="flex items-center space-x-1 sm:space-x-2">
+                    {/* Botones de Navegación - Redujimos padding en móvil para que quepan todos */}
+                    <div className="flex items-center space-x-0.5 sm:space-x-2">
                         <Link
                             href="/"
-                            className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${esActivo('/') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
+                            className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors ${esActivo('/') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
                         >
                             Partidos
                         </Link>
 
                         <Link
                             href="/ranking"
-                            className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${esActivo('/ranking') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
+                            className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors ${esActivo('/ranking') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
                         >
                             Ranking
                         </Link>
 
                         {/* MENÚ DESPLEGABLE "MÁS" */}
-                        <div className="relative">
+                        <div className="relative shrink-0">
                             <button
                                 onClick={() => setMenuMenuAbierto(!menuAbierto)}
-                                className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors flex items-center gap-1 ${pathname === '/especiales' || pathname === '/premios' ? 'bg-blue-800 text-white' : 'hover:bg-blue-700 text-blue-100'}`}
+                                className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors flex items-center gap-1 ${pathname === '/especiales' || pathname === '/premios' ? 'bg-blue-800 text-white' : 'hover:bg-blue-700 text-blue-100'}`}
                             >
                                 Más ▾
                             </button>
@@ -84,14 +85,14 @@ export default function Navbar() {
                         {usuario ? (
                             <button
                                 onClick={cerrarSesion}
-                                className="px-3 py-2 rounded-md text-sm font-semibold text-red-300 hover:bg-red-800/60 transition-colors ml-1"
+                                className="px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold text-red-300 hover:bg-red-800/60 transition-colors ml-0.5 shrink-0"
                             >
                                 Salir
                             </button>
                         ) : (
                             <Link
                                 href="/registro"
-                                className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${esActivo('/registro') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
+                                className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors ${esActivo('/registro') ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'} shrink-0`}
                             >
                                 Registro
                             </Link>
