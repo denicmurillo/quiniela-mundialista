@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 
@@ -11,10 +11,12 @@ export default function Registro() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [mensaje, setMensaje] = useState("");
+    const [cargando, setCargando] = useState(false);
 
     const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMensaje("Procesando...");
+        setCargando(true);
 
         try {
             if (esRegistro) {
@@ -28,16 +30,39 @@ export default function Registro() {
                     puntaje_total: 0
                 });
                 setMensaje("¡Registro exitoso! Ya estás en la quiniela.");
+                window.location.href = "/"; // Redirigir al inicio
             } else {
                 // LÓGICA DE LOGIN
                 await signInWithEmailAndPassword(auth, email, password);
                 setMensaje("¡Inicio de sesión exitoso! Bienvenido de vuelta.");
-                // Opcional: Redirigir al inicio automáticamente
-                window.location.href = "/";
+                window.location.href = "/"; // Redirigir al inicio
             }
         } catch (error: any) {
             console.error(error);
             setMensaje(esRegistro ? "Error: El correo ya existe o la contraseña es inválida." : "Error: Correo o contraseña incorrectos.");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    // LÓGICA DE RECUPERACIÓN DE CONTRASEÑA
+    const recuperarContrasena = async () => {
+        if (!email) {
+            setMensaje("⚠️ Por favor, escribe tu correo electrónico arriba para poder enviarte el enlace de recuperación.");
+            return;
+        }
+
+        setCargando(true);
+        setMensaje("Enviando correo de recuperación...");
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            setMensaje("✅ ¡Correo enviado! Revisa tu bandeja de entrada o carpeta de SPAM para restablecer tu contraseña.");
+        } catch (error: any) {
+            console.error("Error al restablecer contraseña:", error);
+            setMensaje("❌ Error: Verifica que el correo esté bien escrito o que la cuenta exista.");
+        } finally {
+            setCargando(false);
         }
     };
 
@@ -70,13 +95,32 @@ export default function Registro() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                        {/* Hacemos que la contraseña NO sea requerida si solo quieren recuperar su cuenta */}
                         <input
-                            type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                            type="password" required={!esRegistro ? false : true} value={password} onChange={(e) => setPassword(e.target.value)}
                             className="w-full border border-gray-300 rounded-lg p-3 text-gray-900" placeholder="********"
                         />
+
+                        {/* Botón de Olvidé mi contraseña (Solo visible en Login) */}
+                        {!esRegistro && (
+                            <div className="text-right mt-2">
+                                <button
+                                    type="button"
+                                    onClick={recuperarContrasena}
+                                    disabled={cargando}
+                                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors mt-4">
+                    <button
+                        type="submit"
+                        disabled={cargando}
+                        className={`w-full text-white font-bold py-3 rounded-lg transition-colors mt-4 ${cargando ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                    >
                         {esRegistro ? "Crear Cuenta" : "Entrar a mi cuenta"}
                     </button>
                 </form>
@@ -92,7 +136,7 @@ export default function Registro() {
                 </div>
 
                 {mensaje && (
-                    <div className={`mt-4 p-3 rounded text-center text-sm font-medium ${mensaje.includes("Error") ? "bg-red-50 text-red-800" : "bg-green-50 text-green-800"}`}>
+                    <div className={`mt-4 p-3 rounded text-center text-sm font-medium ${mensaje.includes("Error") || mensaje.includes("⚠️") || mensaje.includes("❌") ? "bg-red-50 text-red-800" : "bg-green-50 text-green-800"}`}>
                         {mensaje}
                     </div>
                 )}
