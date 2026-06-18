@@ -18,7 +18,7 @@ interface Jugador {
 export default function Ranking() {
     const [jugadores, setJugadores] = useState<Jugador[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [filtroActivo, setFiltroActiva] = useState<string>("global");
+    const [filtroActivo, setFiltroActiva] = useState<string>("j2");
 
     useEffect(() => {
         const cargarRanking = async () => {
@@ -87,8 +87,8 @@ export default function Ranking() {
                             key={filtro.id}
                             onClick={() => setFiltroActiva(filtro.id)}
                             className={`py-2.5 px-2 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${filtroActivo === filtro.id
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                                 }`}
                         >
                             {filtro.etiqueta}

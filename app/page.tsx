@@ -265,7 +265,7 @@ export default function Home() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
-  const [jornadaActiva, setJornadaActiva] = useState<number>(1);
+  const [jornadaActiva, setJornadaActiva] = useState<number>(2);
 
   // DICCIONARIO MAESTRO DE USUARIOS PARA OPTIMIZAR EL MODAL
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
@@ -341,8 +341,8 @@ export default function Home() {
               key={num}
               onClick={() => setJornadaActiva(num)}
               className={`flex-1 py-3 px-2 rounded-lg font-bold text-xs md:text-sm transition-all uppercase tracking-wider text-center ${jornadaActiva === num
-                  ? "bg-blue-600 text-white shadow-md scale-[1.02]"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                ? "bg-blue-600 text-white shadow-md scale-[1.02]"
+                : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                 }`}
             >
               Jornada {num === 1 ? "I" : num === 2 ? "II" : "III"}

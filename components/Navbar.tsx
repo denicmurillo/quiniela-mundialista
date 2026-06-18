@@ -57,13 +57,13 @@ export default function Navbar() {
                         <div className="relative shrink-0">
                             <button
                                 onClick={() => setMenuMenuAbierto(!menuAbierto)}
-                                className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors flex items-center gap-1 ${pathname === '/especiales' || pathname === '/premios' ? 'bg-blue-800 text-white' : 'hover:bg-blue-700 text-blue-100'}`}
+                                className={`px-2 sm:px-3 py-2 rounded-md text-[11px] sm:text-sm font-semibold transition-colors flex items-center gap-1 ${pathname === '/especiales' || pathname === '/premios' || pathname === '/calendario' ? 'bg-blue-800 text-white shadow-inner' : 'hover:bg-blue-700 text-blue-100'}`}
                             >
                                 Más ▾
                             </button>
 
                             {menuAbierto && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 border border-gray-100 z-50 animate-fadeIn">
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 border border-gray-100 z-50 animate-fadeIn">
                                     <Link
                                         href="/especiales"
                                         onClick={() => setMenuMenuAbierto(false)}
@@ -78,10 +78,16 @@ export default function Navbar() {
                                     >
                                         🎁 Premios y Patrocinios
                                     </Link>
+                                    <Link
+                                        href="/calendario"
+                                        onClick={() => setMenuMenuAbierto(false)}
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
+                                    >
+                                        📆 Calendario de Eventos
+                                    </Link>
                                 </div>
                             )}
                         </div>
-
                         {usuario ? (
                             <button
                                 onClick={cerrarSesion}

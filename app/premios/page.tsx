@@ -8,7 +8,7 @@ export default function Premios() {
     const esModoEmpresa = tituloApp.includes("MACHOS") || tituloApp.includes("ALFA") || tituloApp.includes("MELCOCHONES");
 
     // Estado maestro para controlar cuál subpestaña de premios está activa
-    const [tabActiva, setTabActiva] = useState<string>("j1");
+    const [tabActiva, setTabActiva] = useState<string>("j2");
 
     return (
         <main className="min-h-screen bg-gray-100 p-4 md:p-6">
@@ -27,13 +27,12 @@ export default function Premios() {
                     </div>
 
                     {/* BARRA DE SUBPESTAÑAS (Flex-wrap para que se acomoden en celular, Grid en PC) */}
-                    <div className="bg-gray-100 p-2 rounded-xl flex flex-wrap justify-center gap-2 md:grid md:grid-cols-5 mb-6">
+                    <div className="bg-gray-100 p-2 rounded-xl flex flex-wrap justify-center gap-2 md:grid md:grid-cols-4 mb-6">
                         {[
                             { id: "j1", etiqueta: "Jornada I" },
                             { id: "j2", etiqueta: "Jornada II" },
                             { id: "j3", etiqueta: "Jornada III" },
-                            { id: "elim", etiqueta: "Eliminatorias" },
-                            { id: "cal", etiqueta: "📆 Calendario" }
+                            { id: "elim", etiqueta: "Eliminatorias" }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -112,12 +111,63 @@ export default function Premios() {
 
                         {/* 2. VISTA DE JORNADA II */}
                         {tabActiva === "j2" && (
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-sm">
-                                <div className="bg-emerald-600 py-3 px-4">
-                                    <h2 className="font-black text-white text-center tracking-wider uppercase text-sm md:text-base">🔥 Premios en Juego: Jornada II</h2>
-                                </div>
-                                <div className="p-8 text-center text-gray-500 italic font-semibold bg-white">
-                                    Los premios de la segunda jornada serán anunciados al iniciar la semana correspondiente. ¡Sigue sumando puntos! 📊
+                            <div className="space-y-4">
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="bg-emerald-600 py-3 px-4">
+                                        <h2 className="font-black text-white text-center tracking-wider uppercase text-sm md:text-base">🔥 Premios en Juego: Jornada II</h2>
+                                    </div>
+                                    <div className="p-4 space-y-3">
+                                        <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-emerald-100">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl">🥇</span>
+                                                <h3 className="font-black text-gray-800 text-base md:text-lg">LÍDER DE JORNADA</h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-sm md:text-base font-bold text-emerald-700 block">
+                                                    {esModoEmpresa ? "Balón de Fútbol ⚽" : "Camiseta de Fútbol 👕"}
+                                                </span>
+                                                <span className="text-xs text-gray-400 font-medium block">
+                                                    {esModoEmpresa ? "Patrocina: PECHE Fitness" : "Patrocina: MYG Abogados"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl">🥈</span>
+                                                <h3 className="font-black text-gray-700 text-base md:text-lg">2DO LUGAR</h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-sm md:text-base font-bold text-gray-700 block">Imán Coleccionable 🧲</span>
+                                                <span className="text-xs text-gray-400 font-medium block">Patrocina: PunticoCR</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-amber-100">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl">🥉</span>
+                                                <h3 className="font-black text-amber-700 text-base md:text-lg">3ER LUGAR</h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-sm md:text-base font-bold text-amber-600 block">Premio Sorpresa 🎁</span>
+                                                <span className="text-xs text-gray-400 font-medium block">Premio de la casa</span>
+                                            </div>
+                                        </div>
+
+                                        {/* EL SÓTANO DE JORNADA II */}
+                                        {!esModoEmpresa && (
+                                            <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-red-200">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">💩</span>
+                                                    <h3 className="font-black text-red-900 text-base md:text-lg">EL SÓTANO</h3>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-sm md:text-base font-bold text-red-600 block">Cantar "Los pollitos dicen" 🐣</span>
+                                                    <span className="text-xs text-gray-400 font-medium block">Obligatorio en la fiesta del 27 de junio</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -143,55 +193,6 @@ export default function Premios() {
                                         <p className="text-sm text-blue-700 font-medium mt-1">Premio final acumulado de todo el torneo</p>
                                     </div>
                                     <span className="text-lg md:text-xl font-black text-blue-600 bg-white px-6 py-3 rounded-lg shadow-sm border border-blue-100">Por definir 👀</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 5. CALENDARIO DE PREMIACIÓN (Línea de tiempo estilizada) */}
-                        {tabActiva === "cal" && (
-                            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                                <h3 className="font-black text-gray-800 text-xl uppercase mb-5 tracking-tight text-center md:text-left">📅 Cronograma de Celebraciones</h3>
-
-                                {/* 📢 ANUNCIO DE SEDE Y TRANSMISIONES */}
-                                <div className="mb-8 p-6 bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg text-white flex flex-col sm:flex-row items-center gap-6 border-b-4 border-amber-400">
-                                    <div className="bg-white/10 p-4 rounded-full flex-shrink-0 backdrop-blur-sm">
-                                        <span className="text-5xl">🍻</span>
-                                    </div>
-                                    <div className="text-center sm:text-left">
-                                        <h4 className="font-black text-sm md:text-base uppercase tracking-wider text-blue-200 mb-1">Sede Oficial</h4>
-                                        <span className="text-3xl md:text-4xl font-black uppercase text-amber-300 drop-shadow-md block leading-none">
-                                            EL CONTENEDOR
-                                        </span>
-                                        <p className="text-sm text-blue-100 font-medium mt-3 leading-relaxed">
-                                            ¡Ven a ver las transmisiones de los partidos en vivo en las fechas anunciadas y acompáñanos en nuestras épicas entregas de premios!
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="relative border-l-2 border-emerald-300 ml-4 space-y-8 pb-2">
-                                    {/* Evento 1 */}
-                                    <div className="relative pl-6 group">
-                                        <div className="absolute -left-[9px] top-1.5 bg-emerald-500 h-4 w-4 rounded-full border-2 border-white shadow-sm group-hover:bg-emerald-600 transition-colors"></div>
-                                        <span className="text-xs font-black bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Cierre Fase de Grupos</span>
-                                        <h4 className="font-bold text-gray-800 text-lg mt-1">Sábado 27 de Junio</h4>
-                                        <p className="text-sm text-gray-500 font-medium mt-0.5">Primera gran entrega de premios para los líderes de las Jornadas I, II y III.</p>
-                                    </div>
-
-                                    {/* Evento 2 */}
-                                    <div className="relative pl-6 group">
-                                        <div className="absolute -left-[9px] top-1.5 bg-blue-500 h-4 w-4 rounded-full border-2 border-white shadow-sm group-hover:bg-blue-600 transition-colors"></div>
-                                        <span className="text-xs font-black bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Cierre de Cuartos</span>
-                                        <h4 className="font-bold text-gray-800 text-lg mt-1">Sábado 11 de Julio</h4>
-                                        <p className="text-sm text-gray-500 font-medium mt-0.5">Celebración especial al concluir los encuentros de Cuartos de Final.</p>
-                                    </div>
-
-                                    {/* Evento 3 */}
-                                    <div className="relative pl-6 group">
-                                        <div className="absolute -left-[9px] top-1.5 bg-purple-500 h-4 w-4 rounded-full border-2 border-white shadow-sm group-hover:bg-purple-600 transition-colors"></div>
-                                        <span className="text-xs font-black bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full uppercase tracking-wider">La Gran Final</span>
-                                        <h4 className="font-bold text-gray-800 text-lg mt-1">Domingo 19 de Julio</h4>
-                                        <p className="text-sm text-gray-500 font-medium mt-0.5">Fiesta de clausura del Mundial 2026. Coronación del Gran Campeón Global de la quiniela.</p>
-                                    </div>
                                 </div>
                             </div>
                         )}
