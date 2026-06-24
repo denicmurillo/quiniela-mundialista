@@ -18,7 +18,7 @@ interface Jugador {
 export default function Ranking() {
     const [jugadores, setJugadores] = useState<Jugador[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [filtroActivo, setFiltroActiva] = useState<string>("j2");
+    const [filtroActivo, setFiltroActiva] = useState<string>("j3");
 
     useEffect(() => {
         const cargarRanking = async () => {

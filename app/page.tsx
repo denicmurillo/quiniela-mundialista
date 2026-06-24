@@ -265,7 +265,7 @@ export default function Home() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
-  const [jornadaActiva, setJornadaActiva] = useState<number>(2);
+  const [jornadaActiva, setJornadaActiva] = useState<number>(3);
 
   // DICCIONARIO MAESTRO DE USUARIOS PARA OPTIMIZAR EL MODAL
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});

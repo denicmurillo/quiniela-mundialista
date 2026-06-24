@@ -8,7 +8,7 @@ export default function Premios() {
     const esModoEmpresa = tituloApp.includes("MACHOS") || tituloApp.includes("ALFA") || tituloApp.includes("MELCOCHONES");
 
     // Estado maestro para controlar cuál subpestaña de premios está activa
-    const [tabActiva, setTabActiva] = useState<string>("j2");
+    const [tabActiva, setTabActiva] = useState<string>("j3");
 
     return (
         <main className="min-h-screen bg-gray-100 p-4 md:p-6">
