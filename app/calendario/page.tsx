@@ -44,7 +44,7 @@ export default function Calendario() {
                                 <div className="mt-3 bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
                                     <h4 className="font-bold text-gray-800 text-lg">Sábado 27 de Junio - Fase de Grupos</h4>
                                     <p className="text-sm text-gray-600 font-medium mt-2">
-                                        ¡Qué gran primera entrega! Tuvimos un ambiente espectacular. Felicidades a <strong>Denic</strong> (Líder J1) y a <strong>Tía Mila</strong> (Líder J2) por sus premios. Los premios de la Jornada III se estarán coordinando esta semana. ¡Gracias a todos los que nos acompañaron! 🎉
+                                        ¡Qué gran primera entrega! Tuvimos un ambiente espectacular. Felicidades a <strong>Denic</strong> (Líder J1) y a <strong>Tía Mila</strong> (Líder J2) por sus premios. Los premios de la Jornada III se estarán entregando el próximo sábado 11 de julio. ¡Gracias a todos los que nos acompañaron! 🎉
                                     </p>
                                 </div>
                             ) : (
@@ -52,10 +52,10 @@ export default function Calendario() {
                                 <div className="mt-3 bg-amber-50 border border-amber-100 p-4 rounded-xl">
                                     <h4 className="font-bold text-gray-800 text-lg">Sábado 27 de Junio - El Cumpleaños Fantasma 🎂</h4>
                                     <p className="text-sm text-gray-600 font-medium mt-2 mb-2">
-                                        Un monumento y agradecimiento exclusivo a <strong>Oscar</strong> (Líder J2), ¡literalmente el único que llegó a la premiación! 🏆
+                                        Un monumento y agradecimiento exclusivo a <strong>Oscar</strong> (Líder J2), ¡literalmente el único que llegó a la premiación! 🏆 (y Dylan, que no le quedaba de otra)
                                     </p>
                                     <p className="text-sm text-gray-600 font-medium mt-1">
-                                        Al parecer, un cumpleaños sorpresa en PECHE Fitness nos boicoteó la asistencia masiva. No hay resentimientos, pero para la próxima al menos avisen para llevar el queque. 😅 Los premios pendientes de J1 y J3 se estarán entregando en los próximos días.
+                                        Al parecer, un cumpleaños sorpresa en PECHE Fitness nos boicoteó la asistencia masiva. No hay resentimientos, pero para la próxima al menos avisen para llevar el queque. 😅 Los premios pendientes de J1, J2 y J3 se estarán entregando el sábado 11 de julio.
                                     </p>
                                 </div>
                             )}
@@ -67,7 +67,7 @@ export default function Calendario() {
                             <span className="text-xs font-black bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Próximo Evento</span>
                             <h4 className="font-bold text-gray-800 text-lg mt-2">Sábado 11 de Julio - Cierre de Cuartos</h4>
                             <p className="text-sm text-gray-500 font-medium mt-1">
-                                Celebración especial al concluir los encuentros de Cuartos de Final.
+                                Celebración especial a partir de las 2:30 p.m. para ver los últimos encuentros de Cuartos de Final.
                                 {esModoEmpresa && " (Esperemos que esta vez nadie cumpla años sin avisar 👀)."}
                             </p>
                         </div>
