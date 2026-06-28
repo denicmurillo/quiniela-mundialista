@@ -120,9 +120,7 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
     }
   };
 
-  const horaPartido = partido.fecha_original && typeof partido.fecha_original.toDate === 'function'
-    ? partido.fecha_original.toDate()
-    : (partido.fecha_original instanceof Date ? partido.fecha_original : new Date(partido.fecha_original || partido.fecha_hora));
+  const horaPartido = partido.fecha_original instanceof Date ? partido.fecha_original : new Date();
   const ahora = new Date();
   const diferenciaMinutos = (horaPartido.getTime() - ahora.getTime()) / (1000 * 60);
   const estaBloqueado = partido.estado_partido === "finalizado" || (!isNaN(diferenciaMinutos) && diferenciaMinutos <= 5);
@@ -259,7 +257,7 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
-  // 🔥 AHORA ABRE POR DEFECTO EN 16AVOS (Fase 4)
+  // Abre automáticamente en 16avos (Fase 4)
   const [jornadaActiva, setJornadaActiva] = useState<number>(4);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
@@ -279,23 +277,45 @@ export default function Home() {
         const listaPartidos: Partido[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          let fechaFormateada = data.fecha_hora;
 
-          // 🔥 CORRECCIÓN: Leemos y respetamos el Timestamp de fecha_original
+          // 1. Obtener la fecha original segura como objeto Date para ordenar sin crasheos
           let fechaOriginal = data.fecha_original || data.fecha_hora;
-
           if (fechaOriginal && typeof fechaOriginal.toDate === 'function') {
             fechaOriginal = fechaOriginal.toDate();
           } else if (fechaOriginal && fechaOriginal.seconds) {
             fechaOriginal = new Date(fechaOriginal.seconds * 1000);
           } else if (typeof fechaOriginal === 'string') {
             fechaOriginal = new Date(fechaOriginal);
+          } else {
+            fechaOriginal = new Date();
           }
 
-          listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada, fecha_original: fechaOriginal, jornada: data.jornada || 1 } as Partido);
+          // 2. CONTROL DEL BUG CRÍTICO: Formatear fecha_hora para que NUNCA sea un objeto nativo de Firebase
+          let fechaFormateada = "";
+          if (data.fecha_hora && typeof data.fecha_hora.toDate === 'function') {
+            fechaFormateada = data.fecha_hora.toDate().toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+          } else if (data.fecha_hora && data.fecha_hora.seconds) {
+            fechaFormateada = new Date(data.fecha_hora.seconds * 1000).toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+          } else if (typeof data.fecha_hora === 'string') {
+            if (data.fecha_hora.includes('Z') || data.fecha_hora.includes('T')) {
+              fechaFormateada = new Date(data.fecha_hora).toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+            } else {
+              fechaFormateada = data.fecha_hora;
+            }
+          } else {
+            fechaFormateada = "Fecha pendiente";
+          }
+
+          listaPartidos.push({
+            id: doc.id,
+            ...data,
+            fecha_hora: fechaFormateada,
+            fecha_original: fechaOriginal,
+            jornada: data.jornada || 1
+          } as Partido);
         });
 
-        // 🔥 ORDENAMIENTO ESTRICTAMENTE CRONOLÓGICO
+        // Ordenamiento estrictamente cronológico
         listaPartidos.sort((a, b) => {
           const timeA = a.fecha_original instanceof Date && !isNaN(a.fecha_original.getTime()) ? a.fecha_original.getTime() : 0;
           const timeB = b.fecha_original instanceof Date && !isNaN(b.fecha_original.getTime()) ? b.fecha_original.getTime() : 0;
@@ -344,9 +364,7 @@ export default function Home() {
           </h1>
         </div>
 
-        {/* ========================================== */}
-        {/* BOTONERA EN GRID (IGUAL AL RANKING)        */}
-        {/* ========================================== */}
+        {/* BOTONERA EN GRID ADAPTATIVO */}
         <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-200 grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap md:justify-center gap-1 mb-8">
           {fases.map((fase) => {
             const esEliminatoria = fase.id >= 4;
