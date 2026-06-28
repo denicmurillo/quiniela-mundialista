@@ -1,6 +1,10 @@
 "use client";
 
 export default function Calendario() {
+    const tituloApp = process.env.NEXT_PUBLIC_APP_TITLE || "";
+    // Identificamos el entorno para mostrar el mensaje correcto de la fiesta
+    const esModoEmpresa = tituloApp.includes("MACHOS") || tituloApp.includes("ALFA") || tituloApp.includes("MELCOCHONES");
+
     return (
         <main className="min-h-screen bg-gray-100 p-4 md:p-6">
             <div className="max-w-3xl mx-auto space-y-6">
@@ -20,27 +24,52 @@ export default function Calendario() {
                                 EL CONTENEDOR
                             </span>
                             <p className="text-sm text-blue-100 font-medium mt-3 leading-relaxed">
-                                ¡Ven a ver las transmisiones de los partidos en vivo en las fechas anunciadas y acompáñanos en nuestras épicas entregas de premios!
+                                ¡Acompáñanos en nuestras épicas entregas de premios y transmisiones en vivo!
                             </p>
                         </div>
                     </div>
 
                     {/* LÍNEA DE TIEMPO */}
                     <div className="relative border-l-2 border-emerald-300 ml-4 space-y-10 pb-4">
-                        {/* Evento 1 */}
+
+                        {/* Evento 1: Dinámico según la quiniela */}
                         <div className="relative pl-6 group">
-                            <div className="absolute -left-[9px] top-1.5 bg-emerald-500 h-4 w-4 rounded-full border-2 border-white shadow-sm group-hover:bg-emerald-600 transition-colors"></div>
-                            <span className="text-xs font-black bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Cierre Fase de Grupos</span>
-                            <h4 className="font-bold text-gray-800 text-lg mt-2">Sábado 27 de Junio</h4>
-                            <p className="text-sm text-gray-500 font-medium mt-1">Primera gran entrega de premios para los líderes de las Jornadas I, II y III.</p>
+                            <div className="absolute -left-[9px] top-1.5 bg-gray-500 h-4 w-4 rounded-full border-2 border-white shadow-sm transition-colors"></div>
+                            <span className="text-xs font-black bg-gray-200 text-gray-700 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                COMPLETADO ✅
+                            </span>
+
+                            {!esModoEmpresa ? (
+                                // MENSAJE DE ÉXITO PARA LA FAMILIA
+                                <div className="mt-3 bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                                    <h4 className="font-bold text-gray-800 text-lg">Sábado 27 de Junio - Fase de Grupos</h4>
+                                    <p className="text-sm text-gray-600 font-medium mt-2">
+                                        ¡Qué gran primera entrega! Tuvimos un ambiente espectacular. Felicidades a <strong>Denic</strong> (Líder J1) y a <strong>Tía Mila</strong> (Líder J2) por sus premios. Los premios de la Jornada III se estarán coordinando esta semana. ¡Gracias a todos los que nos acompañaron! 🎉
+                                    </p>
+                                </div>
+                            ) : (
+                                // MENSAJE SARCÁSTICO/HUMORÍSTICO PARA LOS AMIGOS
+                                <div className="mt-3 bg-amber-50 border border-amber-100 p-4 rounded-xl">
+                                    <h4 className="font-bold text-gray-800 text-lg">Sábado 27 de Junio - El Cumpleaños Fantasma 🎂</h4>
+                                    <p className="text-sm text-gray-600 font-medium mt-2 mb-2">
+                                        Un monumento y agradecimiento exclusivo a <strong>Oscar</strong> (Líder J2), ¡literalmente el único que llegó a la premiación! 🏆
+                                    </p>
+                                    <p className="text-sm text-gray-600 font-medium mt-1">
+                                        Al parecer, un cumpleaños sorpresa en PECHE Fitness nos boicoteó la asistencia masiva. No hay resentimientos, pero para la próxima al menos avisen para llevar el queque. 😅 Los premios pendientes de J1 y J3 se estarán entregando en los próximos días.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Evento 2 */}
                         <div className="relative pl-6 group">
                             <div className="absolute -left-[9px] top-1.5 bg-blue-500 h-4 w-4 rounded-full border-2 border-white shadow-sm group-hover:bg-blue-600 transition-colors"></div>
-                            <span className="text-xs font-black bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Cierre de Cuartos</span>
-                            <h4 className="font-bold text-gray-800 text-lg mt-2">Sábado 11 de Julio</h4>
-                            <p className="text-sm text-gray-500 font-medium mt-1">Celebración especial al concluir los encuentros de Cuartos de Final.</p>
+                            <span className="text-xs font-black bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full uppercase tracking-wider">Próximo Evento</span>
+                            <h4 className="font-bold text-gray-800 text-lg mt-2">Sábado 11 de Julio - Cierre de Cuartos</h4>
+                            <p className="text-sm text-gray-500 font-medium mt-1">
+                                Celebración especial al concluir los encuentros de Cuartos de Final.
+                                {esModoEmpresa && " (Esperemos que esta vez nadie cumpla años sin avisar 👀)."}
+                            </p>
                         </div>
 
                         {/* Evento 3 */}
