@@ -25,6 +25,8 @@ interface Partido {
     goles_local?: number;
     goles_visitante?: number;
     ganador_avanza?: string;
+    fecha_hora: string;
+    fecha_original?: any;
 }
 
 export default function PanelAdmin() {
@@ -37,20 +39,51 @@ export default function PanelAdmin() {
     const [usuarioAdmin, setUsuarioAdmin] = useState<User | null>(null);
     const [verificando, setVerificando] = useState(true);
 
+    // 🔥 PESTAÑA ACTIVA EN ADMIN: Eliminatorias seleccionada por defecto
+    const [tabFase, setTabFase] = useState<"eliminatorias" | "grupos">("eliminatorias");
+
     useEffect(() => {
         const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
             setUsuarioAdmin(user);
             setVerificando(false);
         });
 
-        const cargarPartidosPendientes = async () => {
+        const cargarPartidosAdmin = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, "partidos"));
                 const lista: Partido[] = [];
                 querySnapshot.forEach((doc) => {
-                    lista.push({ id: doc.id, ...doc.data() } as Partido);
+                    const data = doc.data();
+                    let fechaFormateada = data.fecha_hora;
+
+                    // Parseo cronológico exacto
+                    let fechaOriginal = data.fecha_original || data.fecha_hora;
+                    if (fechaOriginal && typeof fechaOriginal.toDate === 'function') {
+                        fechaOriginal = fechaOriginal.toDate();
+                        fechaFormateada = fechaOriginal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+                    } else if (fechaOriginal && fechaOriginal.seconds) {
+                        fechaOriginal = new Date(fechaOriginal.seconds * 1000);
+                        fechaFormateada = fechaOriginal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+                    } else if (typeof fechaOriginal === 'string') {
+                        fechaOriginal = new Date(fechaOriginal);
+                    }
+
+                    lista.push({
+                        id: doc.id,
+                        ...data,
+                        fecha_hora: fechaFormateada,
+                        fecha_original: fechaOriginal,
+                        jornada: data.jornada || 1
+                    } as Partido);
                 });
-                lista.sort((a, b) => (a.jornada || 1) - (b.jornada || 1));
+
+                // 🔥 ORDENAMIENTO CRONOLÓGICO SEGURO PARA EL ADMINISTRADOR
+                lista.sort((a, b) => {
+                    const timeA = a.fecha_original instanceof Date && !isNaN(a.fecha_original.getTime()) ? a.fecha_original.getTime() : 0;
+                    const timeB = b.fecha_original instanceof Date && !isNaN(b.fecha_original.getTime()) ? b.fecha_original.getTime() : 0;
+                    return timeA - timeB;
+                });
+
                 setPartidos(lista);
             } catch (error) {
                 console.error("Error al cargar partidos:", error);
@@ -59,7 +92,7 @@ export default function PanelAdmin() {
             }
         };
 
-        cargarPartidosPendientes();
+        cargarPartidosAdmin();
         return () => cancelarSuscripcion();
     }, []);
 
@@ -77,7 +110,6 @@ export default function PanelAdmin() {
         const partidoActual = partidos.find(p => p.id === partidoId);
         const jornadaDelPartido = partidoActual?.jornada || 1;
 
-        // Si es fase eliminatoria, el campo 'avanza' es obligatorio
         if (jornadaDelPartido >= 4 && (!res.avanza || res.avanza === "")) {
             alert("⚠️ Al ser fase eliminatoria, debes definir obligatoriamente qué equipo avanza a la siguiente ronda (Tiempos extra / Penales).");
             return;
@@ -91,7 +123,6 @@ export default function PanelAdmin() {
         try {
             const partidoRef = doc(db, "partidos", partidoId);
 
-            // Guardamos los goles de los 90min reglamentarios y quién avanza
             const updatePayload: Record<string, any> = {
                 estado_partido: "finalizado",
                 goles_local: realLocal,
@@ -130,6 +161,12 @@ export default function PanelAdmin() {
         }
     };
 
+    // Filtrado adaptativo en base a la pestaña seleccionada
+    const partidosFiltrados = partidos.filter(p => {
+        const j = p.jornada || 1;
+        return tabFase === "eliminatorias" ? j >= 4 : j <= 3;
+    });
+
     if (verificando) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center font-bold animate-pulse">Verificando credenciales...</div>;
 
     if (!usuarioAdmin || usuarioAdmin.email !== CORREO_ADMIN) {
@@ -146,13 +183,13 @@ export default function PanelAdmin() {
         <main className="min-h-screen bg-gray-900 p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-4xl font-bold text-center text-red-500 mb-1">⚙️ Panel de Control</h1>
-                <p className="text-center text-gray-400 mb-8 text-sm">Autenticado como administrador VIP</p>
+                <p className="text-center text-gray-400 mb-6 text-sm">Autenticado como administrador VIP</p>
 
                 {/* ========================================== */}
-                {/* 🚀 NUEVA BOTONERA MAESTRA AUTOMÁTICA DE LLAVES */}
+                {/* AUTOMATIZACIÓN DE LLAVES                   */}
                 {/* ========================================== */}
-                <div className="bg-gray-800 rounded-xl p-5 border border-red-900/50 mb-8">
-                    <h2 className="text-red-400 font-bold tracking-wider text-xs uppercase mb-4 text-center sm:text-left">⚡ Automatización de Llaves Eliminatorias</h2>
+                <div className="bg-gray-800 rounded-xl p-5 border border-red-900/50 mb-6">
+                    <h2 className="text-red-400 font-bold tracking-wider text-xs uppercase mb-4 Regal-center text-center sm:text-left">⚡ Automatización de Llaves Eliminatorias</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                         <button onClick={() => ejecutarBotonLlave(calcularYGenerar16avos, "Generar 16avos (Matemática de Grupos)")} className="bg-emerald-700 hover:bg-emerald-600 text-white font-black p-3 rounded-lg text-[10px] uppercase tracking-wider transition-all">Sáb Noche: 16avos</button>
                         <button onClick={() => ejecutarBotonLlave(generarOctavos, "Octavos de Final")} className="bg-blue-700 hover:bg-blue-600 text-white font-black p-3 rounded-lg text-[10px] uppercase tracking-wider transition-all">Octavos</button>
@@ -162,22 +199,60 @@ export default function PanelAdmin() {
                     </div>
                 </div>
 
-                <div className="flex justify-center mb-6">
-                    <button onClick={async () => { if (confirm("¿Cargar el calendario base?")) await sembrarCalendario(); }} className="text-xs font-bold text-gray-500 hover:text-white bg-gray-800 px-4 py-2 rounded-md border border-gray-700">Reiniciar Calendario Fase Grupos</button>
+                {/* ========================================== */}
+                {/* 🎛️ PESTAÑAS DE CONTROL DE FASE EN ADMIN     */}
+                {/* ========================================== */}
+                <div className="bg-gray-800 p-1.5 rounded-xl border border-gray-700 flex flex-col sm:flex-row gap-1.5 mb-6">
+                    <button
+                        onClick={() => setTabFase("eliminatorias")}
+                        className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${tabFase === "eliminatorias"
+                                ? "bg-amber-500 text-white shadow-md font-black"
+                                : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                            }`}
+                    >
+                        🏆 Fase Eliminatoria (16avos a Final)
+                    </button>
+                    <button
+                        onClick={() => setTabFase("grupos")}
+                        className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${tabFase === "grupos"
+                                ? "bg-blue-600 text-white shadow-md font-black"
+                                : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                            }`}
+                    >
+                        ⚽ Fase de Grupos (Historial J-I, II, III)
+                    </button>
                 </div>
 
+                <div className="flex justify-center mb-6">
+                    <button onClick={async () => { if (confirm("¿Cargar el calendario base?")) await sembrarCalendario(); }} className="text-[10px] font-bold text-gray-600 hover:text-gray-400 bg-transparent py-1 px-3 rounded uppercase">Reiniciar Calendario Grupos</button>
+                </div>
+
+                {/* Título dinámico de la sección */}
+                <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight text-center sm:text-left">
+                    {tabFase === "eliminatorias" ? "🚩 Control de Muerte Súbita" : "📚 Historial de Grupos"}
+                </h2>
+
                 {cargando ? (
-                    <p className="text-center text-white">Cargando marcadores del torneo...</p>
+                    <p className="text-center text-white font-semibold animate-pulse">Cargando marcadores del torneo...</p>
                 ) : (
                     <div className="space-y-4">
-                        {partidos.map((partido) => {
+                        {partidosFiltrados.map((partido) => {
                             const esEliminatorio = (partido.jornada || 1) >= 4;
+                            let nombreEtiqueta = `Jornada ${partido.jornada}`;
+                            if (partido.jornada === 4) nombreEtiqueta = "16avos de Final";
+                            if (partido.jornada === 5) nombreEtiqueta = "Octavos de Final";
+                            if (partido.jornada === 6) nombreEtiqueta = "Cuartos de Final";
+                            if (partido.jornada === 7) nombreEtiqueta = "Semifinal";
+                            if (partido.jornada === 8) nombreEtiqueta = "La Gran Final";
+
                             return (
-                                <div key={partido.id} className={`bg-gray-800 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between border-l-4 ${esEliminatorio ? 'border-amber-400' : 'border-red-600'}`}>
+                                <div key={partido.id} className={`bg-gray-800 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between border-l-4 ${esEliminatorio ? 'border-amber-400' : 'border-blue-600'}`}>
                                     <div className="text-white font-bold text-lg flex-1 text-center md:text-right">{partido.equipo_local}</div>
 
                                     <div className="flex-1 flex flex-col items-center justify-center px-4 my-4 md:my-0">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Jornada {partido.jornada}</span>
+                                        <span className={`text-[9px] font-black uppercase tracking-widest mb-2 px-2 py-0.5 rounded ${esEliminatorio ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                                            {nombreEtiqueta}
+                                        </span>
                                         {partido.estado_partido === "finalizado" ? (
                                             <div className="flex flex-col items-center">
                                                 <div className="flex gap-4 items-center text-2xl font-black text-white">
@@ -191,13 +266,13 @@ export default function PanelAdmin() {
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-center w-full">
+                                                <span className="text-[10px] text-gray-500 font-bold mb-2">{partido.fecha_hora}</span>
                                                 <div className="flex gap-2 items-center">
                                                     <input type="number" min="0" placeholder="0" onChange={(e) => manejarCambio(partido.id, "local", e.target.value)} className="w-12 h-10 text-center bg-gray-700 text-white border border-gray-600 rounded text-lg font-bold" />
                                                     <span className="text-gray-500 font-bold text-xs">VS</span>
                                                     <input type="number" min="0" placeholder="0" onChange={(e) => manejarCambio(partido.id, "visitante", e.target.value)} className="w-12 h-10 text-center bg-gray-700 text-white border border-gray-600 rounded text-lg font-bold" />
                                                 </div>
 
-                                                {/* CAMPO DE SELECCIÓN OBLIGATORIO DE BRACKET */}
                                                 {esEliminatorio && (
                                                     <select
                                                         onChange={(e) => manejarCambio(partido.id, "avanza", e.target.value)}
@@ -218,6 +293,12 @@ export default function PanelAdmin() {
                                 </div>
                             );
                         })}
+
+                        {partidosFiltrados.length === 0 && (
+                            <p className="text-center text-gray-400 italic py-10 bg-gray-800 rounded-xl border border-gray-700">
+                                No hay partidos registrados para esta fase del torneo.
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

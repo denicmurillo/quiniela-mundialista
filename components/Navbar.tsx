@@ -11,12 +11,18 @@ export default function Navbar() {
     const [usuario, setUsuario] = useState<User | null>(null);
     const [menuAbierto, setMenuMenuAbierto] = useState(false);
 
+    // Escuchar el estado de autenticación
     useEffect(() => {
         const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
             setUsuario(user);
         });
         return () => cancelarSuscripcion();
     }, []);
+
+    // Cerrar el menú automáticamente si se navega a otra ruta (ej: Partidos, Ranking)
+    useEffect(() => {
+        setMenuMenuAbierto(false);
+    }, [pathname]);
 
     const cerrarSesion = async () => {
         if (confirm("¿Seguro que deseas salir de tu cuenta?")) {
@@ -31,13 +37,13 @@ export default function Navbar() {
             <div className="max-w-4xl mx-auto px-2 sm:px-4">
                 <div className="flex justify-between items-center h-16">
 
-                    {/* Logo / Título - Ajustado para que no robe espacio en móviles */}
+                    {/* Logo / Título */}
                     <Link href="/" className="font-bold hover:scale-105 transition-transform flex items-center gap-1 whitespace-nowrap shrink-0">
                         <span className="text-xl md:text-2xl">⚽</span>
                         <span className="tracking-tighter text-white text-sm sm:text-base md:text-lg">MUNDIAL 2026</span>
                     </Link>
 
-                    {/* Botones de Navegación - Redujimos padding en móvil para que quepan todos */}
+                    {/* Botones de Navegación */}
                     <div className="flex items-center space-x-0.5 sm:space-x-2">
                         <Link
                             href="/"
@@ -62,32 +68,37 @@ export default function Navbar() {
                                 Más ▾
                             </button>
 
+                            {/* Overlay invisible que cierra el menú al hacer clic fuera */}
                             {menuAbierto && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 border border-gray-100 z-50 animate-fadeIn">
-                                    <Link
-                                        href="/especiales"
-                                        onClick={() => setMenuMenuAbierto(false)}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
-                                    >
-                                        ⭐ Especiales (Podio)
-                                    </Link>
-                                    <Link
-                                        href="/premios"
-                                        onClick={() => setMenuMenuAbierto(false)}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
-                                    >
-                                        🎁 Premios y Patrocinios
-                                    </Link>
-                                    <Link
-                                        href="/calendario"
-                                        onClick={() => setMenuMenuAbierto(false)}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
-                                    >
-                                        📆 Calendario de Eventos
-                                    </Link>
-                                </div>
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setMenuMenuAbierto(false)}></div>
+                                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 border border-gray-100 z-50 animate-fadeIn">
+                                        <Link
+                                            href="/especiales"
+                                            onClick={() => setMenuMenuAbierto(false)}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
+                                        >
+                                            ⭐ Especiales (Podio)
+                                        </Link>
+                                        <Link
+                                            href="/premios"
+                                            onClick={() => setMenuMenuAbierto(false)}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
+                                        >
+                                            🎁 Premios y Patrocinios
+                                        </Link>
+                                        <Link
+                                            href="/calendario"
+                                            onClick={() => setMenuMenuAbierto(false)}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold"
+                                        >
+                                            📆 Calendario de Eventos
+                                        </Link>
+                                    </div>
+                                </>
                             )}
                         </div>
+
                         {usuario ? (
                             <button
                                 onClick={cerrarSesion}

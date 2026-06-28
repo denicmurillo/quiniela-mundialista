@@ -259,8 +259,8 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
-  // 🔥 AQUÍ SE CONTROLA QUÉ PESTAÑA ABRE POR DEFECTO (Actualmente la Jornada 3)
-  const [jornadaActiva, setJornadaActiva] = useState<number>(3);
+  // 🔥 AHORA ABRE POR DEFECTO EN 16AVOS (Fase 4)
+  const [jornadaActiva, setJornadaActiva] = useState<number>(4);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -280,17 +280,25 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           let fechaFormateada = data.fecha_hora;
-          let fechaOriginal = data.fecha_hora;
-          if (data.fecha_hora && typeof data.fecha_hora.toDate === 'function') {
-            fechaOriginal = data.fecha_hora.toDate();
-            fechaFormateada = fechaOriginal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
+
+          // 🔥 CORRECCIÓN: Leemos y respetamos el Timestamp de fecha_original
+          let fechaOriginal = data.fecha_original || data.fecha_hora;
+
+          if (fechaOriginal && typeof fechaOriginal.toDate === 'function') {
+            fechaOriginal = fechaOriginal.toDate();
+          } else if (fechaOriginal && fechaOriginal.seconds) {
+            fechaOriginal = new Date(fechaOriginal.seconds * 1000);
+          } else if (typeof fechaOriginal === 'string') {
+            fechaOriginal = new Date(fechaOriginal);
           }
+
           listaPartidos.push({ id: doc.id, ...data, fecha_hora: fechaFormateada, fecha_original: fechaOriginal, jornada: data.jornada || 1 } as Partido);
         });
 
+        // 🔥 ORDENAMIENTO ESTRICTAMENTE CRONOLÓGICO
         listaPartidos.sort((a, b) => {
-          const timeA = a.fecha_original instanceof Date ? a.fecha_original.getTime() : 0;
-          const timeB = b.fecha_original instanceof Date ? b.fecha_original.getTime() : 0;
+          const timeA = a.fecha_original instanceof Date && !isNaN(a.fecha_original.getTime()) ? a.fecha_original.getTime() : 0;
+          const timeB = b.fecha_original instanceof Date && !isNaN(b.fecha_original.getTime()) ? b.fecha_original.getTime() : 0;
           return timeA - timeB;
         });
 
@@ -307,9 +315,9 @@ export default function Home() {
   }, []);
 
   const fases = [
-    { id: 1, etiqueta: "Grupos I" },
-    { id: 2, etiqueta: "Grupos II" },
-    { id: 3, etiqueta: "Grupos III" },
+    { id: 1, etiqueta: "Jornada I" },
+    { id: 2, etiqueta: "Jornada II" },
+    { id: 3, etiqueta: "Jornada III" },
     { id: 4, etiqueta: "16avos" },
     { id: 5, etiqueta: "Octavos" },
     { id: 6, etiqueta: "Cuartos" },
@@ -337,28 +345,26 @@ export default function Home() {
         </div>
 
         {/* ========================================== */}
-        {/* NUEVA BOTONERA DESLIZABLE (SCROLL HORIZONTAL) */}
+        {/* BOTONERA EN GRID (IGUAL AL RANKING)        */}
         {/* ========================================== */}
-        <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 mb-8 overflow-hidden">
-          <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide snap-x">
-            {fases.map((fase) => {
-              const esEliminatoria = fase.id >= 4;
-              return (
-                <button
-                  key={fase.id}
-                  onClick={() => setJornadaActiva(fase.id)}
-                  className={`flex-none snap-center py-2.5 px-4 rounded-lg font-bold text-xs transition-all uppercase tracking-wider text-center border ${jornadaActiva === fase.id
-                      ? esEliminatoria
-                        ? "bg-amber-500 text-white border-amber-600 shadow-md scale-[1.02]"
-                        : "bg-blue-600 text-white border-blue-700 shadow-md scale-[1.02]"
-                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 border-gray-100"
-                    }`}
-                >
-                  {fase.etiqueta}
-                </button>
-              );
-            })}
-          </div>
+        <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-200 grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap md:justify-center gap-1 mb-8">
+          {fases.map((fase) => {
+            const esEliminatoria = fase.id >= 4;
+            return (
+              <button
+                key={fase.id}
+                onClick={() => setJornadaActiva(fase.id)}
+                className={`py-2.5 px-2 rounded-lg font-bold text-xs transition-all uppercase tracking-wider text-center border ${jornadaActiva === fase.id
+                    ? esEliminatoria
+                      ? "bg-amber-500 text-white border-amber-600 shadow-md scale-[1.02]"
+                      : "bg-blue-600 text-white border-blue-700 shadow-md scale-[1.02]"
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 border-gray-100"
+                  }`}
+              >
+                {fase.etiqueta}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex justify-between items-center mb-6">
