@@ -1,0 +1,161 @@
+import { db } from "./firebase";
+import { collection, getDocs, doc, setDoc, Timestamp } from "firebase/firestore";
+
+// -------------------------------------------------------------
+// INYECCIÓN DIRECTA Y OFICIAL DE DIECISEISAVOS (CALENDARIO FIFA)
+// -------------------------------------------------------------
+export async function calcularYGenerar16avos() {
+
+    // Lista confirmada con los nombres y horarios exactos.
+    // Todas las fechas tienen el sufijo "-06:00" para forzar la Hora de Costa Rica.
+    // Mantenemos "Bosnia", "RD Congo" y "Países Bajos" para que coincidan con tu diccionario de banderas.
+    const llaves16avos = [
+        // Domingo 28 de junio
+        { id: "wc26_73", local: "Sudáfrica", vis: "Canadá", fecha: "2026-06-28T13:00:00-06:00" },
+
+        // Lunes 29 de junio
+        { id: "wc26_76", local: "Brasil", vis: "Japón", fecha: "2026-06-29T11:00:00-06:00" },
+        { id: "wc26_74", local: "Alemania", vis: "Paraguay", fecha: "2026-06-29T14:30:00-06:00" },
+        { id: "wc26_75", local: "Países Bajos", vis: "Marruecos", fecha: "2026-06-29T19:00:00-06:00" },
+
+        // Martes 30 de junio
+        { id: "wc26_78", local: "Costa de Marfil", vis: "Noruega", fecha: "2026-06-30T11:00:00-06:00" },
+        { id: "wc26_77", local: "Francia", vis: "Suecia", fecha: "2026-06-30T15:00:00-06:00" },
+        { id: "wc26_79", local: "México", vis: "Ecuador", fecha: "2026-06-30T19:00:00-06:00" },
+
+        // Miércoles 1 de julio
+        { id: "wc26_80", local: "Inglaterra", vis: "RD Congo", fecha: "2026-07-01T10:00:00-06:00" },
+        { id: "wc26_82", local: "Bélgica", vis: "Senegal", fecha: "2026-07-01T14:00:00-06:00" },
+        { id: "wc26_81", local: "Estados Unidos", vis: "Bosnia", fecha: "2026-07-01T18:00:00-06:00" },
+
+        // Jueves 2 de julio
+        { id: "wc26_84", local: "España", vis: "Austria", fecha: "2026-07-02T13:00:00-06:00" },
+        { id: "wc26_83", local: "Portugal", vis: "Croacia", fecha: "2026-07-02T17:00:00-06:00" },
+        { id: "wc26_85", local: "Suiza", vis: "Argelia", fecha: "2026-07-02T21:00:00-06:00" },
+
+        // Viernes 3 de julio
+        { id: "wc26_88", local: "Australia", vis: "Egipto", fecha: "2026-07-03T12:00:00-06:00" },
+        { id: "wc26_86", local: "Argentina", vis: "Cabo Verde", fecha: "2026-07-03T16:00:00-06:00" },
+        { id: "wc26_87", local: "Colombia", vis: "Ghana", fecha: "2026-07-03T19:00:00-06:00" }
+    ];
+
+    for (const llave of llaves16avos) {
+        // Convertimos el string de fecha a un objeto Date real de JavaScript
+        const fechaObj = new Date(llave.fecha);
+
+        await setDoc(doc(db, "partidos", llave.id), {
+            equipo_local: llave.local,
+            equipo_visitante: llave.vis,
+            jornada: 4, // 16avos equivale a la Jornada 4 para el motor de puntos
+            estado_partido: "pendiente",
+            fecha_hora: fechaObj.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+            fecha_original: Timestamp.fromDate(fechaObj)
+        }, { merge: true });
+    }
+
+    return true;
+}
+
+// -------------------------------------------------------------
+// OPERACIONES DE ARRASTRE DE BRACKET EN CASCADA 
+// (Octavos, Cuartos, Semis y Final)
+// -------------------------------------------------------------
+
+export async function generarOctavos() {
+    const querySnapshot = await getDocs(collection(db, "partidos"));
+    const partidos: Record<string, any> = {};
+    querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
+
+    // Busca quién avanzó según lo digitado por el Admin
+    const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
+
+    const llaves = [
+        { id: "wc26_89", local: avanza("wc26_73"), vis: avanza("wc26_75") },
+        { id: "wc26_90", local: avanza("wc26_74"), vis: avanza("wc26_76") },
+        { id: "wc26_91", local: avanza("wc26_77"), vis: avanza("wc26_79") },
+        { id: "wc26_92", local: avanza("wc26_78"), vis: avanza("wc26_80") },
+        { id: "wc26_93", local: avanza("wc26_81"), vis: avanza("wc26_83") },
+        { id: "wc26_94", local: avanza("wc26_82"), vis: avanza("wc26_84") },
+        { id: "wc26_95", local: avanza("wc26_85"), vis: avanza("wc26_87") },
+        { id: "wc26_96", local: avanza("wc26_86"), vis: avanza("wc26_88") }
+    ];
+
+    let baseFecha = new Date("2026-07-04T10:00:00-06:00");
+    for (let i = 0; i < llaves.length; i++) {
+        const l = llaves[i];
+        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 5, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
+
+        baseFecha.setHours(baseFecha.getHours() + 4);
+        if ((i + 1) % 2 === 0) {
+            baseFecha.setDate(baseFecha.getDate() + 1);
+            baseFecha.setHours(10);
+        }
+    }
+    return true;
+}
+
+export async function generarCuartos() {
+    const querySnapshot = await getDocs(collection(db, "partidos"));
+    const partidos: Record<string, any> = {};
+    querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
+
+    const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
+
+    const llaves = [
+        { id: "wc26_97", local: avanza("wc26_89"), vis: avanza("wc26_90") },
+        { id: "wc26_98", local: avanza("wc26_91"), vis: avanza("wc26_92") },
+        { id: "wc26_99", local: avanza("wc26_93"), vis: avanza("wc26_94") },
+        { id: "wc26_100", local: avanza("wc26_95"), vis: avanza("wc26_96") }
+    ];
+
+    let baseFecha = new Date("2026-07-10T14:00:00-06:00");
+    for (let i = 0; i < llaves.length; i++) {
+        const l = llaves[i];
+        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 6, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
+
+        baseFecha.setHours(baseFecha.getHours() + 4);
+        if ((i + 1) % 2 === 0) {
+            baseFecha.setDate(baseFecha.getDate() + 1);
+            baseFecha.setHours(14);
+        }
+    }
+    return true;
+}
+
+export async function generarSemis() {
+    const querySnapshot = await getDocs(collection(db, "partidos"));
+    const partidos: Record<string, any> = {};
+    querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
+
+    const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
+
+    const llaves = [
+        { id: "wc26_101", local: avanza("wc26_97"), vis: avanza("wc26_98") },
+        { id: "wc26_102", local: avanza("wc26_99"), vis: avanza("wc26_100") }
+    ];
+
+    let baseFecha = new Date("2026-07-14T18:00:00-06:00");
+    for (const l of llaves) {
+        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 7, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
+        baseFecha.setDate(baseFecha.getDate() + 1);
+    }
+    return true;
+}
+
+export async function generarFinal() {
+    const querySnapshot = await getDocs(collection(db, "partidos"));
+    const partidos: Record<string, any> = {};
+    querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
+
+    const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
+
+    await setDoc(doc(db, "partidos", "wc26_103"), {
+        equipo_local: avanza("wc26_101"),
+        equipo_visitante: avanza("wc26_102"),
+        jornada: 8, // La gran final es jornada 8
+        estado_partido: "pendiente",
+        fecha_hora: "Dom 19 Jul, 2:00 p.m.",
+        fecha_original: Timestamp.fromDate(new Date("2026-07-19T14:00:00-06:00"))
+    }, { merge: true });
+    return true;
+}
