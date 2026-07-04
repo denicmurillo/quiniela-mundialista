@@ -6,9 +6,6 @@ import { collection, getDocs, doc, setDoc, Timestamp } from "firebase/firestore"
 // -------------------------------------------------------------
 export async function calcularYGenerar16avos() {
 
-    // Lista confirmada con los nombres y horarios exactos.
-    // Todas las fechas tienen el sufijo "-06:00" para forzar la Hora de Costa Rica.
-    // Mantenemos "Bosnia", "RD Congo" y "Países Bajos" para que coincidan con tu diccionario de banderas.
     const llaves16avos = [
         // Domingo 28 de junio
         { id: "wc26_73", local: "Sudáfrica", vis: "Canadá", fecha: "2026-06-28T13:00:00-06:00" },
@@ -40,13 +37,11 @@ export async function calcularYGenerar16avos() {
     ];
 
     for (const llave of llaves16avos) {
-        // Convertimos el string de fecha a un objeto Date real de JavaScript
         const fechaObj = new Date(llave.fecha);
-
         await setDoc(doc(db, "partidos", llave.id), {
             equipo_local: llave.local,
             equipo_visitante: llave.vis,
-            jornada: 4, // 16avos equivale a la Jornada 4 para el motor de puntos
+            jornada: 4,
             estado_partido: "pendiente",
             fecha_hora: fechaObj.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
             fecha_original: Timestamp.fromDate(fechaObj)
@@ -58,7 +53,6 @@ export async function calcularYGenerar16avos() {
 
 // -------------------------------------------------------------
 // OPERACIONES DE ARRASTRE DE BRACKET EN CASCADA 
-// (Octavos, Cuartos, Semis y Final)
 // -------------------------------------------------------------
 
 export async function generarOctavos() {
@@ -66,30 +60,30 @@ export async function generarOctavos() {
     const partidos: Record<string, any> = {};
     querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
 
-    // Busca quién avanzó según lo digitado por el Admin
     const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
 
+    // 🔥 MATRIZ OFICIAL CORREGIDA Y FECHAS EXACTAS DE LA IMAGEN
     const llaves = [
-        { id: "wc26_89", local: avanza("wc26_73"), vis: avanza("wc26_75") },
-        { id: "wc26_90", local: avanza("wc26_74"), vis: avanza("wc26_76") },
-        { id: "wc26_91", local: avanza("wc26_77"), vis: avanza("wc26_79") },
-        { id: "wc26_92", local: avanza("wc26_78"), vis: avanza("wc26_80") },
-        { id: "wc26_93", local: avanza("wc26_81"), vis: avanza("wc26_83") },
-        { id: "wc26_94", local: avanza("wc26_82"), vis: avanza("wc26_84") },
-        { id: "wc26_95", local: avanza("wc26_85"), vis: avanza("wc26_87") },
-        { id: "wc26_96", local: avanza("wc26_86"), vis: avanza("wc26_88") }
+        { id: "wc26_89", local: avanza("wc26_73"), vis: avanza("wc26_75"), fecha: "2026-07-04T11:00:00-06:00" },
+        { id: "wc26_90", local: avanza("wc26_74"), vis: avanza("wc26_77"), fecha: "2026-07-04T15:00:00-06:00" },
+        { id: "wc26_91", local: avanza("wc26_76"), vis: avanza("wc26_78"), fecha: "2026-07-05T14:00:00-06:00" },
+        { id: "wc26_92", local: avanza("wc26_79"), vis: avanza("wc26_80"), fecha: "2026-07-05T18:00:00-06:00" },
+        { id: "wc26_93", local: avanza("wc26_83"), vis: avanza("wc26_84"), fecha: "2026-07-06T13:00:00-06:00" },
+        { id: "wc26_94", local: avanza("wc26_81"), vis: avanza("wc26_82"), fecha: "2026-07-06T18:00:00-06:00" },
+        { id: "wc26_95", local: avanza("wc26_86"), vis: avanza("wc26_88"), fecha: "2026-07-07T10:00:00-06:00" },
+        { id: "wc26_96", local: avanza("wc26_85"), vis: avanza("wc26_87"), fecha: "2026-07-07T14:00:00-06:00" }
     ];
 
-    let baseFecha = new Date("2026-07-04T10:00:00-06:00");
-    for (let i = 0; i < llaves.length; i++) {
-        const l = llaves[i];
-        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 5, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
-
-        baseFecha.setHours(baseFecha.getHours() + 4);
-        if ((i + 1) % 2 === 0) {
-            baseFecha.setDate(baseFecha.getDate() + 1);
-            baseFecha.setHours(10);
-        }
+    for (const l of llaves) {
+        const fechaObj = new Date(l.fecha);
+        await setDoc(doc(db, "partidos", l.id), {
+            equipo_local: l.local,
+            equipo_visitante: l.vis,
+            jornada: 5,
+            estado_partido: "pendiente",
+            fecha_hora: fechaObj.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+            fecha_original: Timestamp.fromDate(fechaObj)
+        }, { merge: true });
     }
     return true;
 }
