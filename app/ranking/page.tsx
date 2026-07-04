@@ -18,7 +18,7 @@ interface Jugador {
 export default function Ranking() {
     const [jugadores, setJugadores] = useState<Jugador[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [filtroActivo, setFiltroActiva] = useState<string>("global");
+    const [filtroActivo, setFiltroActiva] = useState<string>("elim");
 
     // ESTADOS PARA EL MODAL DE ESTADÍSTICAS
     const [modalEstadisticasAbierto, setModalEstadisticasAbierto] = useState(false);
@@ -300,7 +300,7 @@ export default function Ranking() {
                                     </div>
 
                                     <div className="text-center text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-                                        Basado en {estadisticas.total} partidos jugados
+                                        GLOBAL: Basado en {estadisticas.total} partidos jugados
                                     </div>
 
                                     {/* RACHA ACTUAL */}

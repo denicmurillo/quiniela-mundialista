@@ -49,6 +49,9 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
   const [cargandoPronosticos, setCargandoPronosticos] = useState(false);
   const [pronosticosGlobales, setPronosticosGlobales] = useState<any[]>([]);
 
+  // ESTADO PARA ESTADÍSTICAS GLOBALES DEL JUEGO
+  const [statsPartido, setStatsPartido] = useState({ local: 0, empate: 0, visitante: 0, total: 0, marcadorTop: "" });
+
   useEffect(() => {
     const buscarPronosticoAntiguo = async () => {
       if (usuario) {
@@ -88,6 +91,7 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
     }
   };
 
+  // 🧠 CÁLCULO DEL "ORÁCULO" EN TIEMPO REAL
   const abrirModalPronosticos = async () => {
     setModalAbierto(true);
     setCargandoPronosticos(true);
@@ -95,8 +99,24 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
       const qPredicciones = query(collection(db, "predicciones"), where("partido_id", "==", partido.id));
       const snapPred = await getDocs(qPredicciones);
 
+      let victoriasLocal = 0;
+      let empates = 0;
+      let victoriasVisitante = 0;
+      const marcadoresFrecuencia: Record<string, number> = {};
+
       const lista = snapPred.docs.map(doc => {
         const data = doc.data();
+
+        // Contabilidad de Tendencias Globales
+        const diff = data.pronostico_local - data.pronostico_visitante;
+        if (diff > 0) victoriasLocal++;
+        else if (diff === 0) empates++;
+        else victoriasVisitante++;
+
+        // Contabilidad de Marcadores más repetidos
+        const marcadorStr = `${data.pronostico_local} - ${data.pronostico_visitante}`;
+        marcadoresFrecuencia[marcadorStr] = (marcadoresFrecuencia[marcadorStr] || 0) + 1;
+
         return {
           id: doc.id,
           nombre: usuariosMap[data.usuario_id] || "Anónimo",
@@ -106,6 +126,16 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
         };
       });
 
+      // Extraer el marcador con mayor frecuencia
+      let marcadorTop = "N/A";
+      let maxFreq = 0;
+      for (const [marcador, freq] of Object.entries(marcadoresFrecuencia)) {
+        if (freq > maxFreq) {
+          maxFreq = freq;
+          marcadorTop = marcador;
+        }
+      }
+
       if (partido.estado_partido === "finalizado") {
         lista.sort((a, b) => (b.puntos || 0) - (a.puntos || 0));
       } else {
@@ -113,6 +143,14 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
       }
 
       setPronosticosGlobales(lista);
+      setStatsPartido({
+        local: victoriasLocal,
+        empate: empates,
+        visitante: victoriasVisitante,
+        total: lista.length,
+        marcadorTop: maxFreq > 0 ? marcadorTop : "N/A"
+      });
+
     } catch (error) {
       console.error("Error al cargar pronósticos de terceros:", error);
     } finally {
@@ -209,39 +247,85 @@ function TarjetaPartido({ partido, usuario, usuariosMap }: { partido: Partido, u
         </div>
       </div>
 
-      {/* MODAL DE PRONÓSTICOS DE TERCEROS */}
+      {/* ========================================== */}
+      {/* MODAL DE PRONÓSTICOS DE TERCEROS & ORÁCULO */}
+      {/* ========================================== */}
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
-            <div className="bg-blue-900 p-4 text-white flex justify-between items-center sticky top-0">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn"
+          onClick={() => setModalAbierto(false)} // Cierra al tocar el fondo oscuro
+        >
+          <div
+            className="bg-gray-100 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]"
+            onClick={(e) => e.stopPropagation()} // Evita el cierre al tocar el modal blanco
+          >
+            <div className="bg-blue-900 p-5 text-white flex justify-between items-center sticky top-0 z-10 shadow-md">
               <div>
-                <h3 className="font-black text-lg tracking-tight">Pronósticos del Grupo</h3>
+                <h3 className="font-black text-lg tracking-tight uppercase">Pronósticos del Grupo</h3>
                 <p className="text-xs text-blue-200 truncate max-w-[250px]">{partido.equipo_local} vs {partido.equipo_visitante}</p>
               </div>
-              <button onClick={() => setModalAbierto(false)} className="text-blue-200 hover:text-white text-2xl font-bold px-2">&times;</button>
+              <button onClick={() => setModalAbierto(false)} className="text-blue-200 hover:text-white text-3xl font-bold px-2 leading-none">&times;</button>
             </div>
-            <div className="p-4 overflow-y-auto bg-gray-50 flex-1">
+
+            <div className="overflow-y-auto flex-1 p-4">
               {cargandoPronosticos ? (
-                <p className="text-center text-gray-500 py-8 animate-pulse font-medium">Buscando en los registros...</p>
+                <div className="py-10 text-center space-y-3">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="text-gray-500 font-semibold animate-pulse text-sm">Consultando a los expertos...</p>
+                </div>
               ) : pronosticosGlobales.length === 0 ? (
-                <p className="text-center text-gray-400 py-8 italic">Nadie se atrevió a pronosticar este partido.</p>
+                <p className="text-center text-gray-400 py-8 italic font-medium">Nadie se atrevió a pronosticar este partido.</p>
               ) : (
-                <div className="space-y-2">
-                  {pronosticosGlobales.map((p) => (
-                    <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border ${p.puntos === 3 ? 'bg-green-50 border-green-200' : p.puntos === 1 ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-200'}`}>
-                      <span className="font-bold text-sm text-gray-800 flex-1 truncate pr-2">{p.nombre}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-md text-sm border border-gray-300">
-                          {p.local} - {p.visitante}
-                        </span>
-                        {partido.estado_partido === "finalizado" && (
-                          <span className={`text-xs font-black w-14 text-right ${p.puntos === 3 ? 'text-green-600' : p.puntos === 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-                            {p.puntos > 0 ? `+${p.puntos} pts` : '0 pts'}
-                          </span>
-                        )}
-                      </div>
+                <div className="space-y-4">
+
+                  {/* SECCIÓN VISUAL DEL TERMÓMETRO */}
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest text-center mb-3">El Termómetro</h4>
+
+                    {/* Barra de progreso combinada */}
+                    <div className="h-3 flex rounded-full overflow-hidden w-full mb-2 bg-gray-200">
+                      <div style={{ width: `${(statsPartido.local / statsPartido.total) * 100}%` }} className="bg-blue-500 transition-all"></div>
+                      <div style={{ width: `${(statsPartido.empate / statsPartido.total) * 100}%` }} className="bg-gray-400 transition-all"></div>
+                      <div style={{ width: `${(statsPartido.visitante / statsPartido.total) * 100}%` }} className="bg-red-500 transition-all"></div>
                     </div>
-                  ))}
+
+                    {/* Leyendas con porcentajes */}
+                    <div className="flex justify-between text-[10px] font-bold text-gray-600 mb-4">
+                      <span className="text-blue-600 truncate flex-1 text-left">{Math.round((statsPartido.local / statsPartido.total) * 100)}% {partido.equipo_local}</span>
+                      <span className="text-gray-500 text-center w-16">{Math.round((statsPartido.empate / statsPartido.total) * 100)}% Emp.</span>
+                      <span className="text-red-600 truncate flex-1 text-right">{Math.round((statsPartido.visitante / statsPartido.total) * 100)}% {partido.equipo_visitante}</span>
+                    </div>
+
+                    {/* Marcador más popular */}
+                    <div className="bg-blue-50 rounded-xl p-3 flex justify-between items-center border border-blue-100">
+                      <span className="text-xs font-semibold text-blue-800">Marcador de la mayoría:</span>
+                      <span className="font-black text-blue-900 bg-white px-3 py-1 rounded-md shadow-sm border border-blue-200">
+                        {statsPartido.marcadorTop}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest text-center mb-1 mt-4">Desglose ({statsPartido.total} Apuestas)</h4>
+
+                  {/* LISTA FILTRADA DE JUGADORES */}
+                  <div className="space-y-2">
+                    {pronosticosGlobales.map((p) => (
+                      <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border ${p.puntos === 3 ? 'bg-green-50 border-green-200' : p.puntos === 1 ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <span className="font-bold text-sm text-gray-800 flex-1 truncate pr-2">{p.nombre}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-md text-sm border border-gray-300">
+                            {p.local} - {p.visitante}
+                          </span>
+                          {partido.estado_partido === "finalizado" && (
+                            <span className={`text-xs font-black w-14 text-right ${p.puntos === 3 ? 'text-green-600' : p.puntos === 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                              {p.puntos > 0 ? `+${p.puntos} pts` : '0 pts'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                 </div>
               )}
             </div>
@@ -257,7 +341,7 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
-  // Abre automáticamente en 8avos (Fase 5)
+  // Por defecto abre en Octavos (Fase id: 5) ya que hoy terminaron los 16avos
   const [jornadaActiva, setJornadaActiva] = useState<number>(5);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
@@ -278,7 +362,7 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
 
-          // 1. Obtener la fecha original segura como objeto Date para ordenar sin crasheos
+          // 1. Obtener la fecha original segura como objeto Date
           let fechaOriginal = data.fecha_original || data.fecha_hora;
           if (fechaOriginal && typeof fechaOriginal.toDate === 'function') {
             fechaOriginal = fechaOriginal.toDate();
@@ -290,7 +374,7 @@ export default function Home() {
             fechaOriginal = new Date();
           }
 
-          // 2. CONTROL DEL BUG CRÍTICO: Formatear fecha_hora para que NUNCA sea un objeto nativo de Firebase
+          // 2. Control de formato de fecha_hora seguro
           let fechaFormateada = "";
           if (data.fecha_hora && typeof data.fecha_hora.toDate === 'function') {
             fechaFormateada = data.fecha_hora.toDate().toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' });
