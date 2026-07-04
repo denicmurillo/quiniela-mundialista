@@ -257,8 +257,8 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
-  // Abre automáticamente en 16avos (Fase 4)
-  const [jornadaActiva, setJornadaActiva] = useState<number>(4);
+  // Abre automáticamente en 8avos (Fase 5)
+  const [jornadaActiva, setJornadaActiva] = useState<number>(5);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -373,10 +373,10 @@ export default function Home() {
                 key={fase.id}
                 onClick={() => setJornadaActiva(fase.id)}
                 className={`py-2.5 px-2 rounded-lg font-bold text-xs transition-all uppercase tracking-wider text-center border ${jornadaActiva === fase.id
-                    ? esEliminatoria
-                      ? "bg-amber-500 text-white border-amber-600 shadow-md scale-[1.02]"
-                      : "bg-blue-600 text-white border-blue-700 shadow-md scale-[1.02]"
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 border-gray-100"
+                  ? esEliminatoria
+                    ? "bg-amber-500 text-white border-amber-600 shadow-md scale-[1.02]"
+                    : "bg-blue-600 text-white border-blue-700 shadow-md scale-[1.02]"
+                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 border-gray-100"
                   }`}
               >
                 {fase.etiqueta}
