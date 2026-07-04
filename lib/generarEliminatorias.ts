@@ -5,7 +5,6 @@ import { collection, getDocs, doc, setDoc, Timestamp } from "firebase/firestore"
 // INYECCIÓN DIRECTA Y OFICIAL DE DIECISEISAVOS (CALENDARIO FIFA)
 // -------------------------------------------------------------
 export async function calcularYGenerar16avos() {
-
     const llaves16avos = [
         // Domingo 28 de junio
         { id: "wc26_73", local: "Sudáfrica", vis: "Canadá", fecha: "2026-06-28T13:00:00-06:00" },
@@ -62,7 +61,6 @@ export async function generarOctavos() {
 
     const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
 
-    // 🔥 MATRIZ OFICIAL CORREGIDA Y FECHAS EXACTAS DE LA IMAGEN
     const llaves = [
         { id: "wc26_89", local: avanza("wc26_73"), vis: avanza("wc26_75"), fecha: "2026-07-04T11:00:00-06:00" },
         { id: "wc26_90", local: avanza("wc26_74"), vis: avanza("wc26_77"), fecha: "2026-07-04T15:00:00-06:00" },
@@ -95,10 +93,11 @@ export async function generarCuartos() {
 
     const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
 
+    // 🔥 CRUCES CORREGIDOS: Estructura de convergencia oficial de la FIFA
     const llaves = [
         { id: "wc26_97", local: avanza("wc26_89"), vis: avanza("wc26_90") },
-        { id: "wc26_98", local: avanza("wc26_91"), vis: avanza("wc26_92") },
-        { id: "wc26_99", local: avanza("wc26_93"), vis: avanza("wc26_94") },
+        { id: "wc26_98", local: avanza("wc26_93"), vis: avanza("wc26_94") }, // ✅ Cruce corregido
+        { id: "wc26_99", local: avanza("wc26_91"), vis: avanza("wc26_92") }, // ✅ Cruce corregido
         { id: "wc26_100", local: avanza("wc26_95"), vis: avanza("wc26_96") }
     ];
 
