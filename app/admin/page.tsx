@@ -39,8 +39,8 @@ export default function PanelAdmin() {
     const [usuarioAdmin, setUsuarioAdmin] = useState<User | null>(null);
     const [verificando, setVerificando] = useState(true);
 
-    // 🔥 PESTAÑA ACTIVA EN ADMIN: Eliminatorias seleccionada por defecto
-    const [tabFase, setTabFase] = useState<"eliminatorias" | "grupos">("eliminatorias");
+    // 🔥 PESTAÑA ACTIVA EN ADMIN: "fase_final" seleccionada por defecto
+    const [tabFase, setTabFase] = useState<"fase_final" | "octavos_16avos" | "grupos">("fase_final");
 
     useEffect(() => {
         const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
@@ -161,10 +161,12 @@ export default function PanelAdmin() {
         }
     };
 
-    // Filtrado adaptativo en base a la pestaña seleccionada
+    // 🔥 FILTRADO ADAPTATIVO CON 3 PESTAÑAS
     const partidosFiltrados = partidos.filter(p => {
         const j = p.jornada || 1;
-        return tabFase === "eliminatorias" ? j >= 4 : j <= 3;
+        if (tabFase === "fase_final") return j >= 6; // Cuartos (6), Semis (7), Final (8)
+        if (tabFase === "octavos_16avos") return j === 4 || j === 5; // 16avos (4) y Octavos (5)
+        return j <= 3; // Grupos (1, 2, 3)
     });
 
     if (verificando) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center font-bold animate-pulse">Verificando credenciales...</div>;
@@ -204,22 +206,31 @@ export default function PanelAdmin() {
                 {/* ========================================== */}
                 <div className="bg-gray-800 p-1.5 rounded-xl border border-gray-700 flex flex-col sm:flex-row gap-1.5 mb-6">
                     <button
-                        onClick={() => setTabFase("eliminatorias")}
-                        className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${tabFase === "eliminatorias"
-                                ? "bg-amber-500 text-white shadow-md font-black"
-                                : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        onClick={() => setTabFase("fase_final")}
+                        className={`flex-1 py-3 px-2 md:px-4 rounded-lg font-bold text-[10px] md:text-xs uppercase tracking-wider text-center transition-all ${tabFase === "fase_final"
+                            ? "bg-purple-600 text-white shadow-md font-black"
+                            : "text-gray-400 hover:bg-gray-700 hover:text-white"
                             }`}
                     >
-                        🏆 Fase Eliminatoria (16avos a Final)
+                        🏆 Cuartos a Final
+                    </button>
+                    <button
+                        onClick={() => setTabFase("octavos_16avos")}
+                        className={`flex-1 py-3 px-2 md:px-4 rounded-lg font-bold text-[10px] md:text-xs uppercase tracking-wider text-center transition-all ${tabFase === "octavos_16avos"
+                            ? "bg-amber-500 text-white shadow-md font-black"
+                            : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                            }`}
+                    >
+                        ⚡ 16avos y Octavos
                     </button>
                     <button
                         onClick={() => setTabFase("grupos")}
-                        className={`flex-1 py-3 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-center transition-all ${tabFase === "grupos"
-                                ? "bg-blue-600 text-white shadow-md font-black"
-                                : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        className={`flex-1 py-3 px-2 md:px-4 rounded-lg font-bold text-[10px] md:text-xs uppercase tracking-wider text-center transition-all ${tabFase === "grupos"
+                            ? "bg-blue-600 text-white shadow-md font-black"
+                            : "text-gray-400 hover:bg-gray-700 hover:text-white"
                             }`}
                     >
-                        ⚽ Fase de Grupos (Historial J-I, II, III)
+                        ⚽ Fase de Grupos
                     </button>
                 </div>
 
@@ -229,7 +240,7 @@ export default function PanelAdmin() {
 
                 {/* Título dinámico de la sección */}
                 <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight text-center sm:text-left">
-                    {tabFase === "eliminatorias" ? "🚩 Control de Muerte Súbita" : "📚 Historial de Grupos"}
+                    {tabFase === "fase_final" ? "🚩 Cuartos, Semis y Final" : tabFase === "octavos_16avos" ? "⚡ 16avos y Octavos" : "📚 Historial de Grupos"}
                 </h2>
 
                 {cargando ? (

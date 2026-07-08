@@ -93,25 +93,34 @@ export async function generarCuartos() {
 
     const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
 
-    // 🔥 CRUCES CORREGIDOS: Estructura de convergencia oficial de la FIFA
+    // 🔥 HORARIOS CORREGIDOS SEGÚN CALENDARIO OFICIAL FIFA
     const llaves = [
-        { id: "wc26_97", local: avanza("wc26_89"), vis: avanza("wc26_90") },
-        { id: "wc26_98", local: avanza("wc26_93"), vis: avanza("wc26_94") }, // ✅ Cruce corregido
-        { id: "wc26_99", local: avanza("wc26_91"), vis: avanza("wc26_92") }, // ✅ Cruce corregido
-        { id: "wc26_100", local: avanza("wc26_95"), vis: avanza("wc26_96") }
+        // Jueves 9 de julio
+        { id: "wc26_97", local: avanza("wc26_90"), vis: avanza("wc26_89"), fecha: "2026-07-09T14:00:00-06:00" }, // Francia vs Marruecos
+
+        // Viernes 10 de julio
+        { id: "wc26_98", local: avanza("wc26_93"), vis: avanza("wc26_94"), fecha: "2026-07-10T13:00:00-06:00" }, // España vs Bélgica
+
+        // Sábado 11 de julio
+        { id: "wc26_99", local: avanza("wc26_91"), vis: avanza("wc26_92"), fecha: "2026-07-11T15:00:00-06:00" }, // Noruega vs Inglaterra
+
+        // Sábado 11 de julio
+        { id: "wc26_100", local: avanza("wc26_95"), vis: avanza("wc26_96"), fecha: "2026-07-11T19:00:00-06:00" }  // Argentina vs Suiza
     ];
 
-    let baseFecha = new Date("2026-07-10T14:00:00-06:00");
-    for (let i = 0; i < llaves.length; i++) {
-        const l = llaves[i];
-        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 6, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
-
-        baseFecha.setHours(baseFecha.getHours() + 4);
-        if ((i + 1) % 2 === 0) {
-            baseFecha.setDate(baseFecha.getDate() + 1);
-            baseFecha.setHours(14);
-        }
+    for (const l of llaves) {
+        // Convertimos el string a Date real para que Firebase lo procese bien
+        const fechaObj = new Date(l.fecha);
+        await setDoc(doc(db, "partidos", l.id), {
+            equipo_local: l.local,
+            equipo_visitante: l.vis,
+            jornada: 6,
+            estado_partido: "pendiente",
+            fecha_hora: fechaObj.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+            fecha_original: Timestamp.fromDate(fechaObj)
+        }, { merge: true });
     }
+
     return true;
 }
 
