@@ -160,15 +160,37 @@ export async function generarFinal() {
     const partidos: Record<string, any> = {};
     querySnapshot.forEach(doc => { partidos[doc.id] = doc.data(); });
 
+    // Deduce quién ganó la semifinal
     const avanza = (id: string) => partidos[id]?.ganador_avanza || "Ganador P" + id.split("_")[1];
 
+    // Deduce quién perdió la semifinal para enviarlo al Tercer Puesto
+    const pierde = (id: string) => {
+        const p = partidos[id];
+        if (!p || !p.ganador_avanza) return "Perdedor P" + id.split("_")[1];
+        return p.ganador_avanza === p.equipo_local ? p.equipo_visitante : p.equipo_local;
+    };
+
+    // 1. PARTIDO POR EL TERCER PUESTO (RU101 vs RU102)
+    const fechaTercer = new Date("2026-07-18T15:00:00-06:00");
     await setDoc(doc(db, "partidos", "wc26_103"), {
+        equipo_local: pierde("wc26_101"),
+        equipo_visitante: pierde("wc26_102"),
+        jornada: 8,
+        estado_partido: "pendiente",
+        fecha_hora: fechaTercer.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+        fecha_original: Timestamp.fromDate(fechaTercer)
+    }, { merge: true });
+
+    // 2. LA GRAN FINAL (W101 vs W102)
+    const fechaFinal = new Date("2026-07-19T13:00:00-06:00");
+    await setDoc(doc(db, "partidos", "wc26_104"), {
         equipo_local: avanza("wc26_101"),
         equipo_visitante: avanza("wc26_102"),
-        jornada: 8, // La gran final es jornada 8
+        jornada: 8,
         estado_partido: "pendiente",
-        fecha_hora: "Dom 19 Jul, 2:00 p.m.",
-        fecha_original: Timestamp.fromDate(new Date("2026-07-19T14:00:00-06:00"))
+        fecha_hora: fechaFinal.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+        fecha_original: Timestamp.fromDate(fechaFinal)
     }, { merge: true });
+
     return true;
 }
