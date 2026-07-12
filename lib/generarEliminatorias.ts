@@ -136,9 +136,20 @@ export async function generarSemis() {
         { id: "wc26_102", local: avanza("wc26_99"), vis: avanza("wc26_100") }
     ];
 
-    let baseFecha = new Date("2026-07-14T18:00:00-06:00");
+    // 🔥 CORRECCIÓN: La hora oficial para ambas semifinales es 13:00 CST
+    let baseFecha = new Date("2026-07-14T13:00:00-06:00");
+
     for (const l of llaves) {
-        await setDoc(doc(db, "partidos", l.id), { equipo_local: l.local, equipo_visitante: l.vis, jornada: 7, estado_partido: "pendiente", fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }), fecha_original: Timestamp.fromDate(baseFecha) }, { merge: true });
+        await setDoc(doc(db, "partidos", l.id), {
+            equipo_local: l.local,
+            equipo_visitante: l.vis,
+            jornada: 7,
+            estado_partido: "pendiente",
+            fecha_hora: baseFecha.toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' }),
+            fecha_original: Timestamp.fromDate(baseFecha)
+        }, { merge: true });
+
+        // Suma 1 día exacto para el partido del miércoles 15 de julio a las 13:00
         baseFecha.setDate(baseFecha.getDate() + 1);
     }
     return true;
