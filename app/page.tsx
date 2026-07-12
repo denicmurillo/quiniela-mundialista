@@ -342,7 +342,7 @@ export default function Home() {
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
   // Por defecto abre en Cuartos (Fase id: 6)
-  const [jornadaActiva, setJornadaActiva] = useState<number>(6);
+  const [jornadaActiva, setJornadaActiva] = useState<number>(7);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
