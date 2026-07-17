@@ -341,8 +341,8 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState<User | null>(null);
 
-  // Por defecto abre en Cuartos (Fase id: 6)
-  const [jornadaActiva, setJornadaActiva] = useState<number>(7);
+  // Por defecto abre en Final y tercer lugar (Fase id: 8)
+  const [jornadaActiva, setJornadaActiva] = useState<number>(8);
   const [usuariosMap, setUsuariosMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
