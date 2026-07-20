@@ -6,6 +6,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import Link from "next/link";
 import { db, auth } from "../../lib/firebase";
 import { procesarPuntosDePrediccion } from "../../lib/motorPuntos";
+import { asignarPuntosEspeciales } from "../../lib/procesarPuntosEspeciales"; // 🔥 IMPORTACIÓN DEL NUEVO MOTOR
 
 // IMPORTACIONES MÁGICAS AUTOMÁTICAS
 import {
@@ -42,6 +43,12 @@ export default function PanelAdmin() {
     // 🔥 PESTAÑA ACTIVA EN ADMIN: "fase_final" seleccionada por defecto
     const [tabFase, setTabFase] = useState<"fase_final" | "octavos_16avos" | "grupos">("fase_final");
 
+    // 🏆 ESTADOS PARA LOS PREMIOS ESPECIALES
+    const [campeon, setCampeon] = useState("España");
+    const [goles, setGoles] = useState("Kylian Mbappé");
+    const [mvp, setMvp] = useState("Rodrigo Hernández");
+    const [procesandoEspeciales, setProcesandoEspeciales] = useState(false);
+
     useEffect(() => {
         const cancelarSuscripcion = onAuthStateChanged(auth, (user) => {
             setUsuarioAdmin(user);
@@ -56,7 +63,6 @@ export default function PanelAdmin() {
                     const data = doc.data();
                     let fechaFormateada = data.fecha_hora;
 
-                    // Parseo cronológico exacto
                     let fechaOriginal = data.fecha_original || data.fecha_hora;
                     if (fechaOriginal && typeof fechaOriginal.toDate === 'function') {
                         fechaOriginal = fechaOriginal.toDate();
@@ -77,7 +83,6 @@ export default function PanelAdmin() {
                     } as Partido);
                 });
 
-                // 🔥 ORDENAMIENTO CRONOLÓGICO SEGURO PARA EL ADMINISTRADOR
                 lista.sort((a, b) => {
                     const timeA = a.fecha_original instanceof Date && !isNaN(a.fecha_original.getTime()) ? a.fecha_original.getTime() : 0;
                     const timeB = b.fecha_original instanceof Date && !isNaN(b.fecha_original.getTime()) ? b.fecha_original.getTime() : 0;
@@ -161,12 +166,21 @@ export default function PanelAdmin() {
         }
     };
 
-    // 🔥 FILTRADO ADAPTATIVO CON 3 PESTAÑAS
+    // 🏆 MANEJADOR DE PREMIOS ESPECIALES
+    const handleProcesarEspeciales = async () => {
+        if (!confirm("⚠️ ¿Estás seguro de procesar los premios especiales? Esto sumará +3 puntos a los usuarios que acertaron en la base de datos de manera definitiva.")) return;
+
+        setProcesandoEspeciales(true);
+        const res = await asignarPuntosEspeciales(campeon, goles, mvp);
+        alert(res.message);
+        setProcesandoEspeciales(false);
+    };
+
     const partidosFiltrados = partidos.filter(p => {
         const j = p.jornada || 1;
-        if (tabFase === "fase_final") return j >= 6; // Cuartos (6), Semis (7), Final (8)
-        if (tabFase === "octavos_16avos") return j === 4 || j === 5; // 16avos (4) y Octavos (5)
-        return j <= 3; // Grupos (1, 2, 3)
+        if (tabFase === "fase_final") return j >= 6;
+        if (tabFase === "octavos_16avos") return j === 4 || j === 5;
+        return j <= 3;
     });
 
     if (verificando) return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center font-bold animate-pulse">Verificando credenciales...</div>;
@@ -186,6 +200,51 @@ export default function PanelAdmin() {
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-4xl font-bold text-center text-red-500 mb-1">⚙️ Panel de Control</h1>
                 <p className="text-center text-gray-400 mb-6 text-sm">Autenticado como administrador VIP</p>
+
+                {/* ========================================== */}
+                {/* 🏆 PREMIOS ESPECIALES DEL MUNDIAL           */}
+                {/* ========================================== */}
+                <div className="bg-gray-800 rounded-xl p-5 border border-yellow-600/50 mb-6 shadow-lg">
+                    <h2 className="text-yellow-500 font-bold tracking-wider text-xs uppercase mb-4 text-center sm:text-left">🏆 Asignación de Puntos: Premios Especiales</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Campeón del Mundo</label>
+                            <input
+                                type="text"
+                                value={campeon}
+                                onChange={(e) => setCampeon(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded text-white p-2.5 font-semibold outline-none focus:border-yellow-500 transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Bota de Oro (Goles)</label>
+                            <input
+                                type="text"
+                                value={goles}
+                                onChange={(e) => setGoles(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded text-white p-2.5 font-semibold outline-none focus:border-yellow-500 transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Balón de Oro (MVP)</label>
+                            <input
+                                type="text"
+                                value={mvp}
+                                onChange={(e) => setMvp(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded text-white p-2.5 font-semibold outline-none focus:border-yellow-500 transition-colors"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-center sm:justify-start">
+                        <button
+                            onClick={handleProcesarEspeciales}
+                            disabled={procesandoEspeciales}
+                            className="w-full sm:w-auto bg-yellow-600 hover:bg-yellow-500 text-white font-black py-3 px-8 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {procesandoEspeciales ? "Calculando..." : "Otorgar +3 Puntos"}
+                        </button>
+                    </div>
+                </div>
 
                 {/* ========================================== */}
                 {/* AUTOMATIZACIÓN DE LLAVES                   */}
@@ -238,7 +297,6 @@ export default function PanelAdmin() {
                     <button onClick={async () => { if (confirm("¿Cargar el calendario base?")) await sembrarCalendario(); }} className="text-[10px] font-bold text-gray-600 hover:text-gray-400 bg-transparent py-1 px-3 rounded uppercase">Reiniciar Calendario Grupos</button>
                 </div>
 
-                {/* Título dinámico de la sección */}
                 <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight text-center sm:text-left">
                     {tabFase === "fase_final" ? "🚩 Cuartos, Semis y Final" : tabFase === "octavos_16avos" ? "⚡ 16avos y Octavos" : "📚 Historial de Grupos"}
                 </h2>
